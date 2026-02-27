@@ -27,26 +27,24 @@ export const audienceLists: AudienceList[] = [
 ];
 
 export const paperSizes: PaperSize[] = [
-  { id: 'letter', name: 'Letter', width: '8.5"', height: '11"', maxPages: 6 },
-  { id: 'legal', name: 'Legal', width: '8.5"', height: '14"', maxPages: 4 },
-  { id: 'postcard-6x4', name: 'Postcard', width: '6"', height: '4"', maxPages: 2 },
-  { id: 'postcard-6x9', name: 'Large Postcard', width: '6"', height: '9"', maxPages: 2 },
-  { id: 'a4', name: 'A4', width: '8.27"', height: '11.69"', maxPages: 6 },
+  { id: 'letter-10', name: '8.5 x 11 Letter in House 10', width: '8.5"', height: '11"', maxPages: 7, envelope: 'House 10' },
+  { id: 'letter-6x9', name: '8.5 x 11 Letter in 6x9', width: '8.5"', height: '11"', maxPages: 5, envelope: '6x9' },
+  { id: 'letter-9x12', name: '8.5 x 11 Letter in 9x12', width: '8.5"', height: '11"', maxPages: 10, envelope: '9x12' },
+  { id: 'postcard-6x9', name: '6 x 9 Postcard', width: '6"', height: '9"', maxPages: 2, envelope: 'None' },
+  { id: 'postcard-6x4', name: '6 x 4 Postcard', width: '6"', height: '4"', maxPages: 2, envelope: 'None' },
 ];
 
 export const paperStocks: PaperStock[] = [
-  { id: 'standard-20', name: '20lb Bond', weight: '20lb', finish: 'Smooth', pricePerUnit: 0.02 },
-  { id: 'premium-24', name: '24lb Bond', weight: '24lb', finish: 'Smooth', pricePerUnit: 0.03 },
-  { id: 'cardstock-80', name: '80lb Cardstock', weight: '80lb', finish: 'Matte', pricePerUnit: 0.05 },
-  { id: 'gloss-100', name: '100lb Gloss', weight: '100lb', finish: 'Gloss', pricePerUnit: 0.07 },
-  { id: 'linen-70', name: '70lb Linen', weight: '70lb', finish: 'Linen Texture', pricePerUnit: 0.06 },
+  { id: 'stock-20-85x11', name: '20# paper (8.5x11)', description: '20 lbs, both side matte, weight 0.165', weightValue: '0.165', sheetCount: 2000, pricePerUnit: 0.020 },
+  { id: 'stock-24-85x11', name: '24# paper (8.5x11)', description: '24 lbs, both side matte, weight 0.195', weightValue: '0.195', sheetCount: 2000, pricePerUnit: 0.023 },
+  { id: 'stock-28-85x11', name: '28# paper (8.5x11)', description: '28 lbs, both side matte, weight 0.220', weightValue: '0.220', sheetCount: 1500, pricePerUnit: 0.028 },
+  { id: 'stock-32-85x11', name: '32# paper (8.5x11)', description: '32 lbs, both side gloss, weight 0.250', weightValue: '0.250', sheetCount: 1000, pricePerUnit: 0.035 },
 ];
 
 export const envelopeStocks: EnvelopeStock[] = [
-  { id: 'standard-10', name: '#10 Standard', size: '4.125" x 9.5"', finish: 'White Wove', pricePerUnit: 0.04 },
-  { id: 'window-10', name: '#10 Window', size: '4.125" x 9.5"', finish: 'White Wove', pricePerUnit: 0.05 },
-  { id: 'catalog-6x9', name: '6x9 Catalog', size: '6" x 9"', finish: 'White Wove', pricePerUnit: 0.06 },
-  { id: 'booklet-9x12', name: '9x12 Booklet', size: '9" x 12"', finish: 'Kraft', pricePerUnit: 0.08 },
+  { id: 'house-6x9', name: 'House 6x9 envelope', pricePerUnit: 0.01, shape: 'tall' },
+  { id: 'house-9x12', name: 'House 9x12 envelope', pricePerUnit: 0.01, shape: 'tall' },
+  { id: 'house-10-dw', name: 'House 10 Double Window envelope', pricePerUnit: 0.01, shape: 'wide' },
 ];
 
 export const sampleCSVHeaders = ['FIRST_NAME', 'LAST_NAME', 'ADDRESS_1', 'ADDRESS_2', 'CITY', 'STATE', 'ZIP', 'EMAIL'];

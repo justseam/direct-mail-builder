@@ -1,4 +1,4 @@
-import { useCallback, useRef, useMemo } from 'react';
+import { useCallback, useRef, useMemo, useState, useEffect } from 'react';
 import {
   Heading, Type, ImageIcon, MousePointer2, Puzzle,
   Code, Share2, Map, QrCode, Video, Minus, Table, Braces,
@@ -12,7 +12,10 @@ interface ElementRendererProps {
   pageId: string;
   zoom: number;
   selected: boolean;
+  editing: boolean;
   onSelect: () => void;
+  onStartEdit: () => void;
+  onStopEdit: () => void;
 }
 
 const iconMap: Record<string, typeof Heading> = {
@@ -31,13 +34,29 @@ const iconMap: Record<string, typeof Heading> = {
   variable: Braces,
 };
 
-export default function ElementRenderer({ element, pageId, zoom, selected, onSelect }: ElementRendererProps) {
+export default function ElementRenderer({ element, pageId, zoom, selected, editing, onSelect, onStartEdit, onStopEdit }: ElementRendererProps) {
   const { updateElement } = useCampaign();
   const dragRef = useRef<{ startX: number; startY: number; elX: number; elY: number } | null>(null);
+  const editRef = useRef<HTMLDivElement>(null);
 
   const scale = zoom / 100;
+  const isTextType = element.type === 'heading' || element.type === 'text';
+
+  // When entering edit mode, focus the contentEditable div
+  useEffect(() => {
+    if (editing && editRef.current) {
+      editRef.current.focus();
+      // Place cursor at end
+      const sel = window.getSelection();
+      if (sel) {
+        sel.selectAllChildren(editRef.current);
+        sel.collapseToEnd();
+      }
+    }
+  }, [editing]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (editing) return; // don't drag while editing
     e.stopPropagation();
     onSelect();
 
@@ -66,7 +85,22 @@ export default function ElementRenderer({ element, pageId, zoom, selected, onSel
 
     window.addEventListener('mousemove', handleMove);
     window.addEventListener('mouseup', handleUp);
-  }, [element.x, element.y, element.id, pageId, scale, updateElement, onSelect]);
+  }, [element.x, element.y, element.id, pageId, scale, updateElement, onSelect, editing]);
+
+  const handleDoubleClick = useCallback((e: React.MouseEvent) => {
+    if (!isTextType) return;
+    e.stopPropagation();
+    onStartEdit();
+  }, [isTextType, onStartEdit]);
+
+  const handleBlur = useCallback(() => {
+    if (!editing) return;
+    // Save content from contentEditable
+    if (editRef.current) {
+      updateElement(pageId, element.id, { content: editRef.current.innerText });
+    }
+    onStopEdit();
+  }, [editing, pageId, element.id, updateElement, onStopEdit]);
 
   const handleResize = useCallback((e: React.MouseEvent, corner: string) => {
     e.stopPropagation();
@@ -126,27 +160,53 @@ export default function ElementRenderer({ element, pageId, zoom, selected, onSel
     <div
       className={cn(
         'absolute group',
-        selected ? 'ring-2 ring-accent' : 'hover:ring-1 hover:ring-primary/30',
+        editing ? 'ring-2 ring-primary' : selected ? 'ring-2 ring-accent' : 'hover:ring-1 hover:ring-primary/30',
       )}
       style={{
         left: element.x,
         top: element.y,
         width: element.width,
         height: element.height,
-        cursor: 'grab',
+        cursor: editing ? 'text' : 'grab',
       }}
       onMouseDown={handleMouseDown}
+      onDoubleClick={handleDoubleClick}
     >
       {/* Element content */}
       <div className="w-full h-full overflow-hidden">
-        {element.type === 'heading' && (
+        {element.type === 'heading' && !editing && (
           <div className="flex items-center h-full px-2">
             <span className="text-xl font-bold text-text-primary">{element.content}</span>
           </div>
         )}
-        {element.type === 'text' && (
+        {element.type === 'text' && !editing && (
           <div className="p-2 text-body-sm text-text-primary">{element.content}</div>
         )}
+
+        {/* Inline editing mode for text/heading */}
+        {isTextType && editing && (
+          <div
+            ref={editRef}
+            contentEditable
+            suppressContentEditableWarning
+            className={cn(
+              'w-full h-full outline-none',
+              element.type === 'heading' ? 'flex items-center px-2 text-xl font-bold text-text-primary' : 'p-2 text-body-sm text-text-primary',
+            )}
+            onBlur={handleBlur}
+            onKeyDown={e => {
+              if (e.key === 'Escape') {
+                e.preventDefault();
+                handleBlur();
+              }
+              e.stopPropagation();
+            }}
+            onMouseDown={e => e.stopPropagation()}
+          >
+            {element.content}
+          </div>
+        )}
+
         {element.type === 'image' && (
           <div className="w-full h-full bg-gray-100 border border-dashed border-gray-300 flex flex-col items-center justify-center">
             <ImageIcon className="w-8 h-8 text-gray-400" />
@@ -191,8 +251,8 @@ export default function ElementRenderer({ element, pageId, zoom, selected, onSel
         )}
       </div>
 
-      {/* Resize handles */}
-      {selected && (
+      {/* Resize handles — hide while editing */}
+      {selected && !editing && (
         <>
           {['tl', 'tr', 'bl', 'br'].map(corner => (
             <div

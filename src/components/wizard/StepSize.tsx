@@ -1,7 +1,6 @@
 import { useRef } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import SegmentedButton from '../ui/SegmentedButton';
-import Card from '../ui/Card';
 import { useCampaign } from '../../stores/CampaignStore';
 import { paperSizes } from '../../data/mockData';
 import { cn } from '../../utils';
@@ -11,15 +10,14 @@ export default function StepSize() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (dir: number) => {
-    scrollRef.current?.scrollBy({ left: dir * 240, behavior: 'smooth' });
+    scrollRef.current?.scrollBy({ left: dir * 300, behavior: 'smooth' });
   };
 
   return (
-    <div className="max-w-3xl mx-auto py-10 px-6">
+    <div className="max-w-4xl mx-auto py-6 sm:py-10 px-4 sm:px-6">
       {/* Format Type */}
       <div className="mb-10">
-        <h3 className="text-title-md font-medium text-text-primary mb-1">Format Type</h3>
-        <p className="text-body-sm text-text-secondary mb-4">Choose single-sided or double-sided printing</p>
+        <h3 className="text-title-md font-medium text-text-primary mb-4">Format Type</h3>
         <SegmentedButton
           options={[
             { value: 'simplex', label: 'SIMPLEX' },
@@ -32,8 +30,7 @@ export default function StepSize() {
 
       {/* Paper Size */}
       <div>
-        <h3 className="text-title-md font-medium text-text-primary mb-1">Paper Size</h3>
-        <p className="text-body-sm text-text-secondary mb-4">Select the paper size for your mail piece</p>
+        <h3 className="text-title-md font-medium text-text-primary mb-4">Paper Size</h3>
 
         <div className="relative">
           <button
@@ -45,30 +42,74 @@ export default function StepSize() {
 
           <div
             ref={scrollRef}
-            className="flex gap-4 overflow-x-auto scrollbar-none pb-2 px-4"
+            className="flex gap-4 overflow-x-auto scrollbar-none pb-2 px-2"
             style={{ scrollbarWidth: 'none' }}
           >
-            {paperSizes.map(size => (
-              <Card
-                key={size.id}
-                selected={draft.paperSizeId === size.id}
-                className={cn(
-                  'min-w-[200px] cursor-pointer hover:shadow-sm transition-all',
-                  draft.paperSizeId === size.id && 'ring-1 ring-selected',
-                )}
-                onClick={() => setPaperSize(size.id)}
-              >
-                <div className="flex flex-col items-center text-center gap-2 py-4">
-                  {/* Paper icon representation */}
-                  <div className="w-16 h-20 border-2 border-border rounded-[4px] flex items-center justify-center">
-                    <span className="text-[10px] text-text-secondary">{size.width} x {size.height}</span>
+            {paperSizes.map(size => {
+              const selected = draft.paperSizeId === size.id;
+              return (
+                <button
+                  key={size.id}
+                  className={cn(
+                    'min-w-[220px] sm:min-w-[260px] rounded-[16px] p-4 cursor-pointer transition-all text-left flex flex-col shrink-0',
+                    selected
+                      ? 'bg-primary text-white shadow-md'
+                      : 'bg-[#E9EFF3] text-text-primary hover:shadow-sm',
+                  )}
+                  onClick={() => setPaperSize(size.id)}
+                >
+                  {/* Title */}
+                  <h4 className={cn(
+                    'text-[18px] sm:text-[20px] font-medium leading-tight mb-4',
+                    selected ? 'text-white' : 'text-text-primary',
+                  )}>
+                    {size.name}
+                  </h4>
+
+                  {/* Size + Max Page Limit */}
+                  <div className="flex gap-4 mb-6">
+                    <div>
+                      <span className={cn(
+                        'text-[10px] uppercase font-medium tracking-wide',
+                        selected ? 'text-white/70' : 'text-text-secondary',
+                      )}>
+                        SIZE:
+                      </span>
+                      <p className={cn(
+                        'text-[16px] font-medium',
+                        selected ? 'text-white' : 'text-text-primary',
+                      )}>
+                        {size.width} x {size.height}
+                      </p>
+                    </div>
+                    <div>
+                      <span className={cn(
+                        'text-[10px] uppercase font-medium tracking-wide',
+                        selected ? 'text-white/70' : 'text-text-secondary',
+                      )}>
+                        MAX PAGE LIMIT:
+                      </span>
+                      <p className={cn(
+                        'text-[16px] font-medium',
+                        selected ? 'text-white' : 'text-text-primary',
+                      )}>
+                        {size.maxPages}
+                      </p>
+                    </div>
                   </div>
-                  <h4 className="text-title-sm font-medium mt-2">{size.name}</h4>
-                  <p className="text-body-sm text-text-secondary">{size.width} x {size.height}</p>
-                  <p className="text-label-sm text-text-secondary">Max {size.maxPages} pages</p>
-                </div>
-              </Card>
-            ))}
+
+                  {/* Spacer + Check */}
+                  <div className="flex-1" />
+                  <div className="flex justify-end">
+                    {selected && (
+                      <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                        <Check className="w-4 h-4 text-white" />
+                      </div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
           </div>
 
           <button
@@ -80,13 +121,13 @@ export default function StepSize() {
         </div>
 
         {/* Dots */}
-        <div className="flex justify-center gap-1.5 mt-4">
+        <div className="flex justify-center gap-2 mt-4">
           {paperSizes.map(size => (
             <span
               key={size.id}
               className={cn(
-                'w-2 h-2 rounded-full transition-colors',
-                draft.paperSizeId === size.id ? 'bg-primary' : 'bg-gray-300',
+                'w-5 h-5 rounded-full transition-colors',
+                draft.paperSizeId === size.id ? 'bg-[#A9BBC6]' : 'bg-[#E9EFF3]',
               )}
             />
           ))}

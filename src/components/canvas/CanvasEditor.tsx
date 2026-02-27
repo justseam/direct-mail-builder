@@ -3,6 +3,7 @@ import ElementsPalette from './ElementsPalette';
 import PagesPanel from './PagesPanel';
 import CanvasPage from './CanvasPage';
 import PropertiesPanel from './PropertiesPanel';
+import WysiwygToolbar from './WysiwygToolbar';
 import { useCampaign } from '../../stores/CampaignStore';
 import Switch from '../ui/Switch';
 import type { ElementType, CanvasElement } from '../../types';
@@ -35,6 +36,7 @@ export default function CanvasEditor() {
   const { draft, addElement } = useCampaign();
   const [activePageId, setActivePageId] = useState(draft.pages[0]?.id || '');
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+  const [editingElementId, setEditingElementId] = useState<string | null>(null);
   const [showFoldLines, setShowFoldLines] = useState(true);
   const [showPostage, setShowPostage] = useState(true);
   const [zoom, setZoom] = useState(70);
@@ -44,6 +46,7 @@ export default function CanvasEditor() {
 
   const activePage = draft.pages.find(p => p.id === activePageId);
   const selectedElement = activePage?.elements.find(el => el.id === selectedElementId) || null;
+  const editingElement = activePage?.elements.find(el => el.id === editingElementId) || null;
 
   const addCountRef = useRef(0);
 
@@ -120,16 +123,37 @@ export default function CanvasEditor() {
         </div>
 
         {/* Canvas scroll area */}
-        <div className="flex-1 bg-canvas-bg overflow-auto flex items-start justify-center p-4 sm:p-8">
+        <div className="flex-1 bg-canvas-bg overflow-auto flex items-start justify-center p-4 sm:p-8 relative">
           {activePage && (
-            <CanvasPage
-              page={activePage}
-              zoom={zoom}
-              showFoldLines={showFoldLines}
-              showPostage={showPostage}
-              selectedElementId={selectedElementId}
-              onSelectElement={setSelectedElementId}
-            />
+            <div className="relative">
+              {/* WYSIWYG toolbar - floats above the editing element */}
+              {editingElement && (
+                <WysiwygToolbar
+                  top={editingElement.y * (zoom / 100)}
+                  left={editingElement.x * (zoom / 100)}
+                  width={editingElement.width * (zoom / 100)}
+                />
+              )}
+              <CanvasPage
+                page={activePage}
+                zoom={zoom}
+                showFoldLines={showFoldLines}
+                showPostage={showPostage}
+                selectedElementId={selectedElementId}
+                editingElementId={editingElementId}
+                onSelectElement={(id) => {
+                  setSelectedElementId(id);
+                  if (editingElementId && editingElementId !== id) {
+                    setEditingElementId(null);
+                  }
+                }}
+                onStartEdit={(id) => {
+                  setEditingElementId(id);
+                  setSelectedElementId(id);
+                }}
+                onStopEdit={() => setEditingElementId(null)}
+              />
+            </div>
           )}
         </div>
       </div>

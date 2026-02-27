@@ -25,22 +25,24 @@ export interface PaperSize {
   width: string;
   height: string;
   maxPages: number;
+  envelope: string;
 }
 
 export interface PaperStock {
   id: string;
   name: string;
-  weight: string;
-  finish: string;
+  description: string;
+  weightValue: string;
+  sheetCount: number;
   pricePerUnit: number;
 }
 
 export interface EnvelopeStock {
   id: string;
   name: string;
-  size: string;
-  finish: string;
   pricePerUnit: number;
+  /** Envelope shape: 'standard' for #10 wide, 'tall' for 6x9/9x12, 'wide' for catalog */
+  shape: 'standard' | 'tall' | 'wide';
 }
 
 export type FormatType = 'simplex' | 'duplex';

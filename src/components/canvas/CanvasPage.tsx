@@ -7,7 +7,10 @@ interface CanvasPageProps {
   showFoldLines: boolean;
   showPostage: boolean;
   selectedElementId: string | null;
+  editingElementId: string | null;
   onSelectElement: (id: string | null) => void;
+  onStartEdit: (id: string) => void;
+  onStopEdit: () => void;
 }
 
 // 8.5" x 11" at 96dpi = 816 x 1056px
@@ -21,7 +24,10 @@ export default function CanvasPage({
   showFoldLines,
   showPostage,
   selectedElementId,
+  editingElementId,
   onSelectElement,
+  onStartEdit,
+  onStopEdit,
 }: CanvasPageProps) {
   const scale = zoom / 100;
 
@@ -103,7 +109,10 @@ export default function CanvasPage({
           pageId={page.id}
           zoom={zoom}
           selected={element.id === selectedElementId}
+          editing={element.id === editingElementId}
           onSelect={() => onSelectElement(element.id)}
+          onStartEdit={() => onStartEdit(element.id)}
+          onStopEdit={onStopEdit}
         />
       ))}
     </div>
