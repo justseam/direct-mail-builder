@@ -62,10 +62,10 @@ export default function AudienceListPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <h1 className="text-headline-sm font-bold text-text-primary">Audience Lists</h1>
-        <div className="flex items-center gap-3">
-          <button className="p-2 hover:bg-gray-100 rounded-[8px] text-text-secondary cursor-pointer">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+          <button className="p-2 hover:bg-gray-100 rounded-[8px] text-text-secondary cursor-pointer hidden sm:block">
             <SlidersHorizontal className="w-5 h-5" />
           </button>
           <Input
@@ -73,10 +73,10 @@ export default function AudienceListPage() {
             icon={<Search className="w-4 h-4" />}
             value={globalFilter}
             onChange={e => setGlobalFilter(e.target.value)}
-            className="w-56"
+            className="w-40 sm:w-56"
           />
           <Button
-            variant="accent"
+            variant="primary"
             icon={<Plus className="w-4 h-4" />}
             onClick={() => navigate('/audiences/upload')}
           >
@@ -85,7 +85,7 @@ export default function AudienceListPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-[12px] border border-border overflow-hidden">
+      <div className="bg-white rounded-[12px] border border-border overflow-x-auto">
         <table className="w-full">
           <thead>
             {table.getHeaderGroups().map(hg => (

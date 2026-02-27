@@ -38,9 +38,9 @@ export default function StepAudience() {
           </Button>
         </div>
       ) : (
-        <div className="flex items-center gap-6">
+        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
           <Button
-            variant="accent"
+            variant="primary"
             size="lg"
             icon={<Upload className="w-5 h-5" />}
             onClick={() => navigate('/audiences/upload')}
@@ -51,7 +51,7 @@ export default function StepAudience() {
           <span className="text-body-md text-text-secondary font-medium">OR</span>
 
           <Button
-            variant="accent"
+            variant="primary"
             size="lg"
             icon={<ListPlus className="w-5 h-5" />}
             onClick={() => setDialogOpen(true)}

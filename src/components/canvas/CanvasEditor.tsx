@@ -38,7 +38,9 @@ export default function CanvasEditor() {
   const [showFoldLines, setShowFoldLines] = useState(true);
   const [showPostage, setShowPostage] = useState(true);
   const [zoom, setZoom] = useState(70);
-  const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(
+    typeof window !== 'undefined' && window.innerWidth >= 768
+  );
 
   const activePage = draft.pages.find(p => p.id === activePageId);
   const selectedElement = activePage?.elements.find(el => el.id === selectedElementId) || null;
@@ -62,7 +64,7 @@ export default function CanvasEditor() {
   }, [activePageId, addElement]);
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full relative">
       {/* Left Sidebar */}
       {leftSidebarOpen && (
         <div className="w-64 bg-white border-r border-border flex flex-col shrink-0 overflow-y-auto">
@@ -118,7 +120,7 @@ export default function CanvasEditor() {
         </div>
 
         {/* Canvas scroll area */}
-        <div className="flex-1 bg-canvas-bg overflow-auto flex items-start justify-center p-8">
+        <div className="flex-1 bg-canvas-bg overflow-auto flex items-start justify-center p-4 sm:p-8">
           {activePage && (
             <CanvasPage
               page={activePage}
@@ -132,13 +134,15 @@ export default function CanvasEditor() {
         </div>
       </div>
 
-      {/* Right Sidebar — Properties */}
+      {/* Right Sidebar — Properties (overlay on mobile, inline on desktop) */}
       {selectedElement && (
-        <PropertiesPanel
-          element={selectedElement}
-          pageId={activePageId}
-          onClose={() => setSelectedElementId(null)}
-        />
+        <div className="absolute right-0 top-0 bottom-0 z-20 md:relative md:z-auto">
+          <PropertiesPanel
+            element={selectedElement}
+            pageId={activePageId}
+            onClose={() => setSelectedElementId(null)}
+          />
+        </div>
       )}
     </div>
   );

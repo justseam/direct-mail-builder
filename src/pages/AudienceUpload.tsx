@@ -52,7 +52,7 @@ export default function AudienceUpload() {
       nextLabel={step === steps.length - 1 ? 'Confirm and Upload' : 'Next'}
       nextDisabled={step === 0 && !fileName}
     >
-      <div className="max-w-3xl mx-auto py-10 px-6">
+      <div className="max-w-3xl mx-auto py-6 sm:py-10 px-4 sm:px-6">
         {/* Step 1: Upload */}
         {step === 0 && (
           <div className="text-center">
