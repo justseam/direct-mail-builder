@@ -93,8 +93,11 @@ export default function ElementRenderer({ element, pageId, zoom, selected, editi
     onStartEdit();
   }, [isTextType, onStartEdit]);
 
-  const handleBlur = useCallback(() => {
+  const handleBlur = useCallback((e: React.FocusEvent) => {
     if (!editing) return;
+    // Don't exit edit mode if focus moved to the WYSIWYG toolbar
+    const related = e.relatedTarget as HTMLElement | null;
+    if (related?.closest('.wysiwyg-toolbar')) return;
     // Save content from contentEditable
     if (editRef.current) {
       updateElement(pageId, element.id, { content: editRef.current.innerText });

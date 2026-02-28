@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import ElementsPalette from './ElementsPalette';
 import PagesPanel from './PagesPanel';
 import CanvasPage from './CanvasPage';
@@ -8,12 +8,10 @@ import { useCampaign } from '../../stores/CampaignStore';
 import Switch from '../ui/Switch';
 import type { ElementType, CanvasElement } from '../../types';
 import { v4Id } from '../../utils';
+import { getPageDimensions, paperSizes } from '../../data/mockData';
 import { PanelLeftClose, PanelLeftOpen, Minus, Plus, Maximize2 } from 'lucide-react';
 
-export const PAGE_W = 816;
-export const PAGE_H = 1056;
-
-export function getElementDefaults(type: ElementType): Pick<CanvasElement, 'width' | 'height' | 'content'> {
+export function getElementDefaults(type: ElementType, _pageWidth?: number): Pick<CanvasElement, 'width' | 'height' | 'content'> {
   switch (type) {
     case 'heading': return { width: 300, height: 40, content: 'Heading Text' };
     case 'text': return { width: 250, height: 80, content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.' };
@@ -33,7 +31,7 @@ export function getElementDefaults(type: ElementType): Pick<CanvasElement, 'widt
 }
 
 export default function CanvasEditor() {
-  const { draft, addElement } = useCampaign();
+  const { draft, addElement, removeElement, undo } = useCampaign();
   const [activePageId, setActivePageId] = useState(draft.pages[0]?.id || '');
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [editingElementId, setEditingElementId] = useState<string | null>(null);
@@ -44,27 +42,71 @@ export default function CanvasEditor() {
     typeof window !== 'undefined' && window.innerWidth >= 768
   );
 
+  // Sync activePageId when draft pages change (e.g. after loadDraft)
+  useEffect(() => {
+    if (draft.pages.length > 0 && !draft.pages.find(p => p.id === activePageId)) {
+      setActivePageId(draft.pages[0].id);
+      setSelectedElementId(null);
+      setEditingElementId(null);
+    }
+  }, [draft.pages, activePageId]);
+
+  // Keyboard shortcuts: Delete selected element, Ctrl/Cmd+Z to undo
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Don't handle keys while editing text inline
+      if (editingElementId) return;
+
+      // Delete or Backspace — remove selected element
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedElementId && activePageId) {
+        // Don't intercept if focus is on an input/textarea
+        const tag = (e.target as HTMLElement).tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+        e.preventDefault();
+        removeElement(activePageId, selectedElementId);
+        setSelectedElementId(null);
+      }
+
+      // Ctrl+Z / Cmd+Z — undo
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+        setSelectedElementId(null);
+      }
+    };
+
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [editingElementId, selectedElementId, activePageId, removeElement, undo]);
+
   const activePage = draft.pages.find(p => p.id === activePageId);
   const selectedElement = activePage?.elements.find(el => el.id === selectedElementId) || null;
   const editingElement = activePage?.elements.find(el => el.id === editingElementId) || null;
+
+  // Dynamic page dimensions from selected paper size
+  const { width: pageW, height: pageH } = getPageDimensions(draft.paperSizeId);
+  const selectedPaperSize = draft.paperSizeId ? paperSizes.find(s => s.id === draft.paperSizeId) : null;
+  const envelopeType = selectedPaperSize?.envelope || 'House 10';
+  const pageIndex = activePage ? draft.pages.findIndex(p => p.id === activePage.id) : 0;
+  const isFirstPage = pageIndex === 0;
 
   const addCountRef = useRef(0);
 
   const handleAddElement = useCallback((type: ElementType) => {
     if (!activePageId) return;
-    const defaults = getElementDefaults(type);
+    const defaults = getElementDefaults(type, pageW);
     const offset = (addCountRef.current % 8) * 30;
     addCountRef.current += 1;
     const newElement: CanvasElement = {
       id: v4Id(),
       type,
-      x: (PAGE_W - defaults.width) / 2 + offset,
+      x: (pageW - defaults.width) / 2 + offset,
       y: 120 + offset,
       ...defaults,
     };
     addElement(activePageId, newElement);
     setSelectedElementId(newElement.id);
-  }, [activePageId, addElement]);
+  }, [activePageId, addElement, pageW]);
 
   return (
     <div className="flex h-full relative">
@@ -136,6 +178,10 @@ export default function CanvasEditor() {
               )}
               <CanvasPage
                 page={activePage}
+                pageWidth={pageW}
+                pageHeight={pageH}
+                isFirstPage={isFirstPage}
+                envelopeType={envelopeType}
                 zoom={zoom}
                 showFoldLines={showFoldLines}
                 showPostage={showPostage}

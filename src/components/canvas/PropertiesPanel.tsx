@@ -1,4 +1,4 @@
-import { X, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Trash2 } from 'lucide-react';
+import { X, Trash2 } from 'lucide-react';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
@@ -64,97 +64,13 @@ export default function PropertiesPanel({ element, pageId, onClose }: Properties
           </div>
         </div>
 
-        {/* Text properties */}
+        {/* Text hint — editing is inline via WYSIWYG toolbar */}
         {isText && (
-          <>
-            <div>
-              <h4 className="text-label-sm font-semibold text-text-secondary uppercase mb-2">Typography</h4>
-              <Select
-                label="Font"
-                options={[
-                  { value: 'Helvetica', label: 'Helvetica' },
-                  { value: 'Arial', label: 'Arial' },
-                  { value: 'Georgia', label: 'Georgia' },
-                  { value: 'Times New Roman', label: 'Times New Roman' },
-                  { value: 'Courier New', label: 'Courier New' },
-                ]}
-                value="Helvetica"
-              />
-              <div className="mt-2">
-                <Select
-                  label="Size"
-                  options={[
-                    { value: '12', label: '12px' },
-                    { value: '14', label: '14px' },
-                    { value: '16', label: '16px' },
-                    { value: '18', label: '18px' },
-                    { value: '24', label: '24px' },
-                    { value: '32', label: '32px' },
-                    { value: '48', label: '48px' },
-                  ]}
-                  value={element.type === 'heading' ? '24' : '14'}
-                />
-              </div>
-            </div>
-
-            <div>
-              <h4 className="text-label-sm font-semibold text-text-secondary uppercase mb-2">Style</h4>
-              <Select
-                label="Paragraph"
-                options={[
-                  { value: 'p', label: 'Paragraph' },
-                  { value: 'h1', label: 'Heading 1' },
-                  { value: 'h2', label: 'Heading 2' },
-                  { value: 'h3', label: 'Heading 3' },
-                  { value: 'h4', label: 'Heading 4' },
-                  { value: 'h5', label: 'Heading 5' },
-                  { value: 'h6', label: 'Heading 6' },
-                ]}
-                value={element.type === 'heading' ? 'h1' : 'p'}
-              />
-            </div>
-
-            <div>
-              <h4 className="text-label-sm font-semibold text-text-secondary uppercase mb-2">Alignment</h4>
-              <div className="flex gap-1">
-                {[
-                  { icon: AlignLeft, value: 'left' },
-                  { icon: AlignCenter, value: 'center' },
-                  { icon: AlignRight, value: 'right' },
-                ].map(({ icon: Icon, value }) => (
-                  <button
-                    key={value}
-                    className="p-2 hover:bg-gray-100 rounded-[6px] cursor-pointer text-text-secondary"
-                  >
-                    <Icon className="w-4 h-4" />
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h4 className="text-label-sm font-semibold text-text-secondary uppercase mb-2">Text Style</h4>
-              <div className="flex gap-1">
-                {[Bold, Italic, Underline].map((Icon, i) => (
-                  <button
-                    key={i}
-                    className="p-2 hover:bg-gray-100 rounded-[6px] cursor-pointer text-text-secondary"
-                  >
-                    <Icon className="w-4 h-4" />
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h4 className="text-label-sm font-semibold text-text-secondary uppercase mb-2">Content</h4>
-              <textarea
-                value={element.content || ''}
-                onChange={e => update({ content: e.target.value })}
-                className="w-full rounded-[8px] border border-border px-3 py-2 text-body-sm resize-none h-20 outline-none focus:border-primary"
-              />
-            </div>
-          </>
+          <div>
+            <p className="text-body-sm text-text-secondary">
+              Double-click the element to edit text inline.
+            </p>
+          </div>
         )}
 
         {/* Image properties */}

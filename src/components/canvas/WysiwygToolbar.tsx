@@ -2,7 +2,6 @@ import {
   Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight,
   List, ListOrdered, Undo2, Redo2,
 } from 'lucide-react';
-import Select from '../ui/Select';
 import { cn } from '../../utils';
 
 interface WysiwygToolbarProps {
@@ -37,44 +36,58 @@ export default function WysiwygToolbar({ top, left, width }: WysiwygToolbarProps
     document.execCommand(cmd, false, value);
   };
 
+  /** Run a command from a select, then refocus the contentEditable */
+  const execFromSelect = (cmd: string, value: string) => {
+    // Find the active contentEditable and restore focus before executing
+    const editable = document.querySelector('[contenteditable="true"]') as HTMLElement | null;
+    if (editable) editable.focus();
+    // Small delay to let focus settle, then execute
+    requestAnimationFrame(() => {
+      document.execCommand(cmd, false, value);
+    });
+  };
+
   return (
     <div
-      className="absolute z-50 bg-white rounded-[10px] border border-border shadow-xl px-2 py-1.5 flex items-center gap-0.5"
+      className="wysiwyg-toolbar absolute z-50 bg-white rounded-[10px] border border-border shadow-xl px-2 py-1.5 flex items-center gap-0.5"
       style={{ top: top - 48, left: Math.max(0, left - 40), whiteSpace: 'nowrap' }}
-      onMouseDown={e => e.preventDefault()}
+      onMouseDown={e => {
+        // Prevent blur on the contentEditable, but allow selects to work
+        if ((e.target as HTMLElement).tagName !== 'SELECT' && !(e.target as HTMLElement).closest('select')) {
+          e.preventDefault();
+        }
+      }}
     >
       {/* Font family */}
       <div className="w-[100px] shrink-0">
-        <Select
-          options={[
-            { value: 'Helvetica', label: 'Helvetica' },
-            { value: 'Arial', label: 'Arial' },
-            { value: 'Georgia', label: 'Georgia' },
-            { value: 'Times New Roman', label: 'Times' },
-            { value: 'Courier New', label: 'Courier' },
-          ]}
-          value="Helvetica"
-          onChange={e => exec('fontName', e.target.value)}
-          className="text-[11px] h-7"
-        />
+        <select
+          defaultValue="Helvetica"
+          onChange={e => execFromSelect('fontName', e.target.value)}
+          className="w-full appearance-none rounded-[6px] border border-border bg-white px-2 py-1 pr-6 text-[11px] h-7 text-text-primary outline-none focus:border-primary cursor-pointer"
+        >
+          <option value="Helvetica">Helvetica</option>
+          <option value="Arial">Arial</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Times New Roman">Times</option>
+          <option value="Courier New">Courier</option>
+        </select>
       </div>
 
       {/* Font size */}
       <div className="w-[60px] shrink-0">
-        <Select
-          options={[
-            { value: '1', label: '10' },
-            { value: '2', label: '12' },
-            { value: '3', label: '14' },
-            { value: '4', label: '18' },
-            { value: '5', label: '24' },
-            { value: '6', label: '32' },
-            { value: '7', label: '48' },
-          ]}
-          value="3"
-          onChange={e => exec('fontSize', e.target.value)}
-          className="text-[11px] h-7"
-        />
+        <select
+          defaultValue="3"
+          onChange={e => execFromSelect('fontSize', e.target.value)}
+          className="w-full appearance-none rounded-[6px] border border-border bg-white px-2 py-1 pr-6 text-[11px] h-7 text-text-primary outline-none focus:border-primary cursor-pointer"
+        >
+          <option value="1">10</option>
+          <option value="2">12</option>
+          <option value="3">14</option>
+          <option value="4">18</option>
+          <option value="5">24</option>
+          <option value="6">32</option>
+          <option value="7">48</option>
+        </select>
       </div>
 
       <div className="w-px h-5 bg-border mx-0.5" />

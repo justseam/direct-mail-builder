@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from 'react';
 import type { CampaignDraft, CanvasPage, CanvasElement, FormatType, PostageType } from '../types';
 import { v4Id } from '../utils';
 
@@ -19,6 +19,8 @@ const defaultDraft: CampaignDraft = {
   pages: [defaultPage],
 };
 
+const MAX_UNDO = 50;
+
 interface CampaignStoreValue {
   draft: CampaignDraft;
   setName: (name: string) => void;
@@ -33,13 +35,22 @@ interface CampaignStoreValue {
   addElement: (pageId: string, element: CanvasElement) => void;
   updateElement: (pageId: string, elementId: string, updates: Partial<CanvasElement>) => void;
   removeElement: (pageId: string, elementId: string) => void;
+  loadDraft: (draft: CampaignDraft) => void;
   resetDraft: () => void;
+  undo: () => void;
+  canUndo: boolean;
 }
 
 const CampaignContext = createContext<CampaignStoreValue | null>(null);
 
 export function CampaignProvider({ children }: { children: ReactNode }) {
   const [draft, setDraft] = useState<CampaignDraft>({ ...defaultDraft, pages: [{ ...defaultPage }] });
+  const undoStack = useRef<CampaignDraft[]>([]);
+
+  /** Push current state to undo stack before mutating */
+  const pushUndo = useCallback(() => {
+    undoStack.current = [...undoStack.current.slice(-(MAX_UNDO - 1)), draft];
+  }, [draft]);
 
   const setName = (name: string) => setDraft(d => ({ ...d, name }));
   const setAudience = (id: string) => setDraft(d => ({ ...d, audienceId: id }));
@@ -50,6 +61,7 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
   const setEnvelopeStock = (id: string) => setDraft(d => ({ ...d, envelopeStockId: id }));
 
   const addPage = () => {
+    pushUndo();
     setDraft(d => {
       const num = d.pages.length + 1;
       return { ...d, pages: [...d.pages, { id: v4Id(), label: `Page ${num}`, elements: [] }] };
@@ -57,10 +69,12 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
   };
 
   const removePage = (id: string) => {
+    pushUndo();
     setDraft(d => ({ ...d, pages: d.pages.filter(p => p.id !== id) }));
   };
 
   const addElement = (pageId: string, element: CanvasElement) => {
+    pushUndo();
     setDraft(d => ({
       ...d,
       pages: d.pages.map(p =>
@@ -70,6 +84,7 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
   };
 
   const updateElement = (pageId: string, elementId: string, updates: Partial<CanvasElement>) => {
+    // Don't push undo for every drag pixel — only for significant changes
     setDraft(d => ({
       ...d,
       pages: d.pages.map(p =>
@@ -81,6 +96,7 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
   };
 
   const removeElement = (pageId: string, elementId: string) => {
+    pushUndo();
     setDraft(d => ({
       ...d,
       pages: d.pages.map(p =>
@@ -89,13 +105,28 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const resetDraft = () => setDraft({ ...defaultDraft, pages: [{ ...defaultPage, id: v4Id() }] });
+  const loadDraft = (d: CampaignDraft) => {
+    undoStack.current = [];
+    setDraft(d);
+  };
+
+  const resetDraft = () => {
+    undoStack.current = [];
+    setDraft({ ...defaultDraft, pages: [{ ...defaultPage, id: v4Id() }] });
+  };
+
+  const undo = useCallback(() => {
+    if (undoStack.current.length === 0) return;
+    const prev = undoStack.current.pop()!;
+    setDraft(prev);
+  }, []);
 
   return (
     <CampaignContext.Provider value={{
       draft, setName, setAudience, setFormatType, setPaperSize,
       setPostageType, setPaperStock, setEnvelopeStock,
-      addPage, removePage, addElement, updateElement, removeElement, resetDraft,
+      addPage, removePage, addElement, updateElement, removeElement,
+      loadDraft, resetDraft, undo, canUndo: undoStack.current.length > 0,
     }}>
       {children}
     </CampaignContext.Provider>

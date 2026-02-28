@@ -30,6 +30,7 @@ export const paperSizes: PaperSize[] = [
   { id: 'letter-10', name: '8.5 x 11 Letter in House 10', width: '8.5"', height: '11"', maxPages: 7, envelope: 'House 10' },
   { id: 'letter-6x9', name: '8.5 x 11 Letter in 6x9', width: '8.5"', height: '11"', maxPages: 5, envelope: '6x9' },
   { id: 'letter-9x12', name: '8.5 x 11 Letter in 9x12', width: '8.5"', height: '11"', maxPages: 10, envelope: '9x12' },
+  { id: 'legal-10', name: '8.5 x 14 Legal in House 10', width: '8.5"', height: '14"', maxPages: 5, envelope: 'House 10' },
   { id: 'postcard-6x9', name: '6 x 9 Postcard', width: '6"', height: '9"', maxPages: 2, envelope: 'None' },
   { id: 'postcard-6x4', name: '6 x 4 Postcard', width: '6"', height: '4"', maxPages: 2, envelope: 'None' },
 ];
@@ -56,6 +57,15 @@ export const sampleCSVData = [
   ['Alice', 'Williams', '321 Elm St', '', 'Denver', 'CO', '80202', 'alice@example.com'],
   ['Charlie', 'Brown', '654 Maple Dr', 'Unit 12', 'Seattle', 'WA', '98101', 'charlie@example.com'],
 ];
+
+/** Convert a paper-size ID to pixel dimensions at 96 DPI */
+export function getPageDimensions(paperSizeId: string | null): { width: number; height: number } {
+  const size = paperSizeId ? paperSizes.find(s => s.id === paperSizeId) : null;
+  if (!size) return { width: 816, height: 1056 }; // 8.5×11 fallback
+  const w = parseFloat(size.width.replace('"', ''));
+  const h = parseFloat(size.height.replace('"', ''));
+  return { width: Math.round(w * 96), height: Math.round(h * 96) };
+}
 
 export const mappableColumns = [
   'CHOOSE',
