@@ -6,20 +6,6 @@ import { paperStocks, envelopeStocks } from '../../data/mockData';
 import { cn } from '../../utils';
 import type { EnvelopeStock } from '../../types';
 
-/* ── Paper Stack Illustration ────────────────────────── */
-function PaperStackIcon() {
-  return (
-    <div className="relative w-[160px] h-[220px] mx-auto">
-      {/* Back sheet */}
-      <div className="absolute left-[12px] top-[10px] w-[148px] h-[210px] bg-[#CACCCF] rounded-[3px]" />
-      {/* Middle sheet */}
-      <div className="absolute left-[6px] top-[5px] w-[149px] h-[210px] bg-[#D9DADC] rounded-[3px]" />
-      {/* Front sheet */}
-      <div className="absolute left-0 top-0 w-[150px] h-[210px] bg-[#E7E8E9] rounded-[3px]" />
-    </div>
-  );
-}
-
 /* ── Envelope SVG Illustrations ──────────────────────── */
 function EnvelopeIllustration({ shape }: { shape: EnvelopeStock['shape'] }) {
   if (shape === 'wide') {

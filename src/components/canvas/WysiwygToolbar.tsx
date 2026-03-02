@@ -35,7 +35,7 @@ function ToolBtn({ icon: Icon, label, active, onClick }: {
   );
 }
 
-export default function WysiwygToolbar({ top, left, width }: WysiwygToolbarProps) {
+export default function WysiwygToolbar({ top, left }: WysiwygToolbarProps) {
   // Continuously track the cursor range inside the contentEditable
   const savedRange = useRef<Range | null>(null);
 
