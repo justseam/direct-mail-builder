@@ -19,10 +19,7 @@ export function getElementDefaults(type: ElementType, _pageWidth?: number): Pick
     case 'button': return { width: 160, height: 44, content: 'Click Here' };
     case 'logo': return { width: 120, height: 60, content: '' };
     case 'html': return { width: 300, height: 200, content: '<div>Custom HTML</div>' };
-    case 'social': return { width: 200, height: 40, content: '' };
-    case 'map': return { width: 250, height: 200, content: '' };
     case 'qrcode': return { width: 100, height: 100, content: 'https://example.com' };
-    case 'video': return { width: 300, height: 200, content: '' };
     case 'divider': return { width: 300, height: 2, content: '' };
     case 'table': return { width: 300, height: 150, content: '' };
     case 'variable': return { width: 180, height: 32, content: 'first_name' };

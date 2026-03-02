@@ -55,8 +55,8 @@ export default function CanvasPage({
         style={{ top: MARGIN, left: MARGIN, right: MARGIN, bottom: MARGIN }}
       />
 
-      {/* Fold lines — only on page 1 for envelope types that fold */}
-      {showFoldLines && isFirstPage && envelopeType === 'House 10' && (
+      {/* Fold lines — shown on all pages for envelope types that fold */}
+      {showFoldLines && envelopeType === 'House 10' && (
         <>
           <div className="absolute left-0 right-0 border-t border-dashed border-blue-300 pointer-events-none" style={{ top: Math.round(pageHeight / 3) }}>
             <span className="absolute -top-3 left-4 text-[10px] text-blue-400 bg-white px-1">Fold Line</span>
@@ -66,7 +66,7 @@ export default function CanvasPage({
           </div>
         </>
       )}
-      {showFoldLines && isFirstPage && envelopeType === '6x9' && (
+      {showFoldLines && envelopeType === '6x9' && (
         <div className="absolute left-0 right-0 border-t border-dashed border-blue-300 pointer-events-none" style={{ top: Math.round(pageHeight / 2) }}>
           <span className="absolute -top-3 left-4 text-[10px] text-blue-400 bg-white px-1">Fold Line</span>
         </div>

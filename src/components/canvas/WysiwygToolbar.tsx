@@ -1,8 +1,12 @@
+import { useRef, useEffect } from 'react';
 import {
   Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight,
   List, ListOrdered, Undo2, Redo2,
 } from 'lucide-react';
 import { cn } from '../../utils';
+import { mappableColumns } from '../../data/mockData';
+
+const variableOptions = mappableColumns.filter(c => c !== 'CHOOSE');
 
 interface WysiwygToolbarProps {
   /** Pixel position relative to the canvas scroll container */
@@ -32,18 +36,54 @@ function ToolBtn({ icon: Icon, label, active, onClick }: {
 }
 
 export default function WysiwygToolbar({ top, left, width }: WysiwygToolbarProps) {
+  // Continuously track the cursor range inside the contentEditable
+  const savedRange = useRef<Range | null>(null);
+
+  useEffect(() => {
+    const onSelChange = () => {
+      const sel = window.getSelection();
+      if (!sel || sel.rangeCount === 0) return;
+      const range = sel.getRangeAt(0);
+      // Only save if the selection is inside a contentEditable
+      const node = range.startContainer;
+      const el = node instanceof HTMLElement ? node : node.parentElement;
+      if (el?.closest('[contenteditable="true"]')) {
+        savedRange.current = range.cloneRange();
+      }
+    };
+    document.addEventListener('selectionchange', onSelChange);
+    return () => document.removeEventListener('selectionchange', onSelChange);
+  }, []);
+
   const exec = (cmd: string, value?: string) => {
     document.execCommand(cmd, false, value);
   };
 
   /** Run a command from a select, then refocus the contentEditable */
   const execFromSelect = (cmd: string, value: string) => {
-    // Find the active contentEditable and restore focus before executing
     const editable = document.querySelector('[contenteditable="true"]') as HTMLElement | null;
     if (editable) editable.focus();
-    // Small delay to let focus settle, then execute
     requestAnimationFrame(() => {
       document.execCommand(cmd, false, value);
+    });
+  };
+
+  /** Restore saved selection and insert a variable tag */
+  const insertVariable = (varName: string) => {
+    const editable = document.querySelector('[contenteditable="true"]') as HTMLElement | null;
+    if (!editable) return;
+    editable.focus();
+
+    requestAnimationFrame(() => {
+      // Restore the saved cursor position
+      const sel = window.getSelection();
+      if (sel && savedRange.current) {
+        sel.removeAllRanges();
+        sel.addRange(savedRange.current);
+      }
+      document.execCommand('insertHTML', false,
+        `<span style="background:#fef3c7;color:#92400e;border-radius:3px;padding:0 3px;font-weight:500" contenteditable="false">{{${varName}}}</span>\u200B`
+      );
     });
   };
 
@@ -109,6 +149,27 @@ export default function WysiwygToolbar({ top, left, width }: WysiwygToolbarProps
       {/* Lists */}
       <ToolBtn icon={List} label="Bullet List" onClick={() => exec('insertUnorderedList')} />
       <ToolBtn icon={ListOrdered} label="Numbered List" onClick={() => exec('insertOrderedList')} />
+
+      <div className="w-px h-5 bg-border mx-0.5" />
+
+      {/* Insert Variable */}
+      <div className="w-[110px] shrink-0">
+        <select
+          value=""
+          onChange={e => {
+            if (e.target.value) {
+              insertVariable(e.target.value);
+              e.target.value = '';
+            }
+          }}
+          className="w-full appearance-none rounded-[6px] border border-amber-300 bg-amber-50 px-2 py-1 pr-6 text-[11px] h-7 text-amber-800 font-medium outline-none focus:border-amber-400 cursor-pointer"
+        >
+          <option value="">+ Variable</option>
+          {variableOptions.map(v => (
+            <option key={v} value={v}>{v}</option>
+          ))}
+        </select>
+      </div>
 
       <div className="w-px h-5 bg-border mx-0.5" />
 

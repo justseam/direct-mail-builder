@@ -66,10 +66,7 @@ export type ElementType =
   | 'button'
   | 'logo'
   | 'html'
-  | 'social'
-  | 'map'
   | 'qrcode'
-  | 'video'
   | 'divider'
   | 'table'
   | 'variable';

@@ -1,6 +1,6 @@
 import {
   Heading, Type, ImageIcon, MousePointer2, Puzzle,
-  Code, Share2, Map, QrCode, Video, Minus, Table, Braces,
+  Code, QrCode, Minus, Table, Braces,
 } from 'lucide-react';
 import type { ElementType } from '../../types';
 
@@ -26,15 +26,12 @@ const categories = [
     label: 'Track',
     items: [
       { type: 'qrcode' as ElementType, label: 'QR Code', icon: QrCode },
-      { type: 'map' as ElementType, label: 'Map', icon: Map },
-      { type: 'video' as ElementType, label: 'Video', icon: Video },
     ],
   },
   {
     label: 'Personalize',
     items: [
       { type: 'variable' as ElementType, label: 'Variable', icon: Braces },
-      { type: 'social' as ElementType, label: 'Social', icon: Share2 },
     ],
   },
 ];

@@ -16,6 +16,7 @@ interface WizardShellProps {
   statsBar?: ReactNode;
   nextLabel?: string;
   nextDisabled?: boolean;
+  backDisabled?: boolean;
   children: ReactNode;
 }
 
@@ -32,6 +33,7 @@ export default function WizardShell({
   statsBar,
   nextLabel,
   nextDisabled,
+  backDisabled,
   children,
 }: WizardShellProps) {
   const isLast = currentStep === steps.length - 1;
@@ -130,7 +132,7 @@ export default function WizardShell({
           variant="secondary"
           size="sm"
           onClick={onBack}
-          disabled={currentStep === 0}
+          disabled={currentStep === 0 || backDisabled}
         >
           Back
         </Button>

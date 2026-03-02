@@ -1,13 +1,13 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload, Download, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Upload, Download, AlertTriangle, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import WizardShell from '../components/wizard/WizardShell';
 import Select from '../components/ui/Select';
 import Input from '../components/ui/Input';
 import { sampleCSVHeaders, sampleCSVData, mappableColumns } from '../data/mockData';
 import { cn } from '../utils';
 
-const steps = ['Upload', 'Mapping', 'Confirmation'];
+const steps = ['Upload', 'Mapping', 'Review', 'Status'];
 
 export default function AudienceUpload() {
   const navigate = useNavigate();
@@ -21,6 +21,14 @@ export default function AudienceUpload() {
   });
   const [dragOver, setDragOver] = useState(false);
 
+  // Upload status state
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadDone, setUploadDone] = useState(false);
+
+  const errorRows = [2, 4]; // simulate errors on rows 2 and 4
+  const totalRecords = sampleCSVData.length;
+  const successRecords = totalRecords - errorRows.length;
+
   const simulateUpload = useCallback(() => {
     setFileName('audience_list_export.csv');
     setListName('Imported Audience');
@@ -32,14 +40,36 @@ export default function AudienceUpload() {
     simulateUpload();
   }, [simulateUpload]);
 
-  const errorRows = [2, 4]; // simulate errors on rows 2 and 4
+  // Simulate upload progress when entering the status step
+  useEffect(() => {
+    if (step !== 3) return;
+    setUploadProgress(0);
+    setUploadDone(false);
+
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += Math.random() * 18 + 8;
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(interval);
+        setTimeout(() => setUploadDone(true), 400);
+      }
+      setUploadProgress(Math.min(100, Math.round(progress)));
+    }, 300);
+
+    return () => clearInterval(interval);
+  }, [step]);
 
   return (
     <WizardShell
       title="Upload Audience List"
       steps={steps}
       currentStep={step}
-      onBack={() => step > 0 ? setStep(s => s - 1) : navigate('/audiences')}
+      onBack={() => {
+        if (step === 3) return; // no back during upload
+        if (step > 0) setStep(s => s - 1);
+        else navigate('/audiences');
+      }}
       onNext={() => {
         if (step === 0 && !fileName) {
           simulateUpload();
@@ -49,8 +79,9 @@ export default function AudienceUpload() {
         else navigate('/audiences');
       }}
       onClose={() => navigate('/audiences')}
-      nextLabel={step === steps.length - 1 ? 'Confirm and Upload' : 'Next'}
-      nextDisabled={step === 0 && !fileName}
+      nextLabel={step === 2 ? 'Upload' : step === 3 ? 'Done' : 'Next'}
+      nextDisabled={(step === 0 && !fileName) || (step === 3 && !uploadDone)}
+      backDisabled={step === 3}
     >
       <div className="max-w-3xl mx-auto py-6 sm:py-10 px-4 sm:px-6">
         {/* Step 1: Upload */}
@@ -76,7 +107,7 @@ export default function AudienceUpload() {
                 <div className="flex flex-col items-center gap-3">
                   <CheckCircle2 className="w-10 h-10 text-status-completed" />
                   <p className="text-body-md font-medium">{fileName}</p>
-                  <p className="text-body-sm text-text-secondary">5 records found</p>
+                  <p className="text-body-sm text-text-secondary">{totalRecords} records found</p>
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-3">
@@ -106,7 +137,7 @@ export default function AudienceUpload() {
                 className="w-72"
               />
               <div className="text-body-sm text-text-secondary mt-5">
-                <strong>5</strong> records found
+                <strong>{totalRecords}</strong> records found
               </div>
             </div>
 
@@ -142,7 +173,7 @@ export default function AudienceUpload() {
           </div>
         )}
 
-        {/* Step 3: Confirmation */}
+        {/* Step 3: Review */}
         {step === 2 && (
           <div>
             <h2 className="text-headline-sm font-bold mb-2">Review & Confirm</h2>
@@ -198,9 +229,79 @@ export default function AudienceUpload() {
 
             <div className="mt-6 text-center">
               <p className="text-body-md text-text-secondary">
-                <strong>{sampleCSVData.length - errorRows.length}</strong> of {sampleCSVData.length} records will be imported
+                <strong>{successRecords}</strong> of {totalRecords} records will be imported
               </p>
             </div>
+          </div>
+        )}
+
+        {/* Step 4: Upload Status */}
+        {step === 3 && (
+          <div className="text-center py-8">
+            {!uploadDone ? (
+              <>
+                <Loader2 className="w-12 h-12 text-primary mx-auto mb-6 animate-spin" />
+                <h2 className="text-headline-sm font-bold mb-2">Uploading Audience List</h2>
+                <p className="text-body-md text-text-secondary mb-8">
+                  Importing records from <strong>{fileName}</strong>...
+                </p>
+
+                {/* Progress bar */}
+                <div className="max-w-md mx-auto">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-body-sm text-text-secondary">Processing records...</span>
+                    <span className="text-body-sm font-medium text-text-primary">{uploadProgress}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary rounded-full transition-all duration-300 ease-out"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="w-14 h-14 text-status-completed mx-auto mb-6" />
+                <h2 className="text-headline-sm font-bold mb-2">Upload Complete</h2>
+                <p className="text-body-md text-text-secondary mb-8">
+                  Your audience list <strong>{listName}</strong> has been processed.
+                </p>
+
+                {/* Result cards */}
+                <div className="flex items-center justify-center gap-4 max-w-md mx-auto mb-8">
+                  <div className="flex-1 bg-green-50 border border-green-200 rounded-[12px] p-5">
+                    <CheckCircle2 className="w-6 h-6 text-green-600 mx-auto mb-2" />
+                    <p className="text-2xl font-bold text-green-700">{successRecords}</p>
+                    <p className="text-body-sm text-green-600 font-medium">Successful</p>
+                  </div>
+                  <div className="flex-1 bg-red-50 border border-red-200 rounded-[12px] p-5">
+                    <XCircle className="w-6 h-6 text-red-500 mx-auto mb-2" />
+                    <p className="text-2xl font-bold text-red-600">{errorRows.length}</p>
+                    <p className="text-body-sm text-red-500 font-medium">Failed</p>
+                  </div>
+                </div>
+
+                {/* Error details */}
+                {errorRows.length > 0 && (
+                  <div className="max-w-md mx-auto text-left bg-amber-50 border border-amber-200 rounded-[12px] p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+                      <p className="text-body-sm font-medium text-amber-800">
+                        {errorRows.length} records skipped due to errors
+                      </p>
+                    </div>
+                    <ul className="text-body-sm text-amber-700 space-y-1 ml-6 list-disc">
+                      {errorRows.map(row => (
+                        <li key={row}>
+                          Row {row + 1}: Missing required field (ADDRESS_2)
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
       </div>

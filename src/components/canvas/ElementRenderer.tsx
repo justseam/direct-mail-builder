@@ -1,7 +1,7 @@
 import { useCallback, useRef, useMemo, useState, useEffect } from 'react';
 import {
   Heading, Type, ImageIcon, MousePointer2, Puzzle,
-  Code, Share2, Map, QrCode, Video, Minus, Table, Braces,
+  Code, QrCode, Minus, Table, Braces,
 } from 'lucide-react';
 import { useCampaign } from '../../stores/CampaignStore';
 import { cn } from '../../utils';
@@ -25,10 +25,7 @@ const iconMap: Record<string, typeof Heading> = {
   button: MousePointer2,
   logo: Puzzle,
   html: Code,
-  social: Share2,
-  map: Map,
   qrcode: QrCode,
-  video: Video,
   divider: Minus,
   table: Table,
   variable: Braces,
@@ -93,16 +90,20 @@ export default function ElementRenderer({ element, pageId, zoom, selected, editi
     onStartEdit();
   }, [isTextType, onStartEdit]);
 
-  const handleBlur = useCallback((e: React.FocusEvent) => {
+  const handleBlur = useCallback((e?: React.FocusEvent) => {
     if (!editing) return;
     // Don't exit edit mode if focus moved to the WYSIWYG toolbar
-    const related = e.relatedTarget as HTMLElement | null;
+    const related = (e?.relatedTarget ?? document.activeElement) as HTMLElement | null;
     if (related?.closest('.wysiwyg-toolbar')) return;
-    // Save content from contentEditable
-    if (editRef.current) {
-      updateElement(pageId, element.id, { content: editRef.current.innerText });
-    }
-    onStopEdit();
+    // Delay slightly so variable insertion via requestAnimationFrame can complete
+    setTimeout(() => {
+      const active = document.activeElement as HTMLElement | null;
+      if (active?.closest('.wysiwyg-toolbar')) return;
+      if (editRef.current) {
+        updateElement(pageId, element.id, { content: editRef.current.innerHTML });
+      }
+      onStopEdit();
+    }, 50);
   }, [editing, pageId, element.id, updateElement, onStopEdit]);
 
   const handleResize = useCallback((e: React.MouseEvent, corner: string) => {
@@ -179,11 +180,11 @@ export default function ElementRenderer({ element, pageId, zoom, selected, editi
       <div className="w-full h-full overflow-hidden">
         {element.type === 'heading' && !editing && (
           <div className="flex items-center h-full px-2">
-            <span className="text-xl font-bold text-text-primary">{element.content}</span>
+            <span className="text-xl font-bold text-text-primary" dangerouslySetInnerHTML={{ __html: element.content || '' }} />
           </div>
         )}
         {element.type === 'text' && !editing && (
-          <div className="p-2 text-body-sm text-text-primary">{element.content}</div>
+          <div className="p-2 text-body-sm text-text-primary" dangerouslySetInnerHTML={{ __html: element.content || '' }} />
         )}
 
         {/* Inline editing mode for text/heading */}
@@ -205,9 +206,8 @@ export default function ElementRenderer({ element, pageId, zoom, selected, editi
               e.stopPropagation();
             }}
             onMouseDown={e => e.stopPropagation()}
-          >
-            {element.content}
-          </div>
+            dangerouslySetInnerHTML={{ __html: element.content || '' }}
+          />
         )}
 
         {element.type === 'image' && (
