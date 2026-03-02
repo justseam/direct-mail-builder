@@ -4,33 +4,74 @@ import SegmentedButton from '../ui/SegmentedButton';
 import { useCampaign } from '../../stores/CampaignStore';
 import { paperStocks, envelopeStocks } from '../../data/mockData';
 import { cn } from '../../utils';
-import type { EnvelopeStock } from '../../types';
 
 /* ── Envelope SVG Illustrations ──────────────────────── */
-function EnvelopeIllustration({ shape }: { shape: EnvelopeStock['shape'] }) {
-  if (shape === 'wide') {
-    // House 10 Double Window - wider, shorter
-    return (
-      <svg viewBox="0 0 200 120" className="w-[180px] h-[100px]">
-        <rect x="10" y="10" width="180" height="100" rx="2" fill="none" stroke="#2D446B" strokeWidth="1.5" />
-        <line x1="10" y1="10" x2="100" y2="60" stroke="#2D446B" strokeWidth="1" />
-        <line x1="190" y1="10" x2="100" y2="60" stroke="#2D446B" strokeWidth="1" />
-        {/* Double windows */}
-        <rect x="25" y="55" width="50" height="25" rx="1" fill="none" stroke="#A8BBC5" strokeWidth="1" strokeDasharray="3 2" />
-        <rect x="25" y="85" width="70" height="15" rx="1" fill="none" stroke="#A8BBC5" strokeWidth="1" strokeDasharray="3 2" />
-      </svg>
-    );
-  }
-  // Tall envelopes (6x9, 9x12)
-  const isLarge = shape === 'tall';
+
+/** House 10 Double Window — wide envelope with flap, letter behind with two dashed address windows */
+function House10Illustration() {
   return (
-    <svg viewBox="0 0 160 200" className={cn('h-[140px]', isLarge ? 'w-[120px]' : 'w-[100px]')}>
-      <rect x="5" y="5" width="150" height="190" rx="2" fill="none" stroke="#2D446B" strokeWidth="1.5" />
-      <line x1="5" y1="5" x2="80" y2="70" stroke="#2D446B" strokeWidth="1" />
-      <line x1="155" y1="5" x2="80" y2="70" stroke="#2D446B" strokeWidth="1" />
-      <polyline points="5,5 80,70 155,5" fill="none" stroke="#2D446B" strokeWidth="1" />
+    <svg viewBox="0 0 220 160" className="w-[200px] h-[140px]">
+      {/* Back letter/paper */}
+      <rect x="55" y="8" width="130" height="140" rx="2" fill="#E8EAED" stroke="#C4C8CC" strokeWidth="1" />
+      {/* Address lines on back letter */}
+      <rect x="70" y="55" width="65" height="10" rx="1" fill="none" stroke="#B0B5BC" strokeWidth="1" strokeDasharray="3 2" />
+      <rect x="70" y="72" width="80" height="10" rx="1" fill="none" stroke="#B0B5BC" strokeWidth="1" strokeDasharray="3 2" />
+
+      {/* Front envelope body */}
+      <rect x="10" y="35" width="170" height="115" rx="3" fill="white" stroke="#9CA3AF" strokeWidth="1.2" />
+      {/* Envelope flap — dashed triangle */}
+      <polyline points="10,35 95,85 180,35" fill="none" stroke="#9CA3AF" strokeWidth="1" strokeDasharray="4 3" />
+
+      {/* Double windows on envelope */}
+      <rect x="25" y="75" width="55" height="22" rx="2" fill="none" stroke="#9CA3AF" strokeWidth="1" strokeDasharray="3 2" />
+      <rect x="25" y="105" width="70" height="16" rx="2" fill="none" stroke="#9CA3AF" strokeWidth="1" strokeDasharray="3 2" />
     </svg>
   );
+}
+
+/** House 9x12 — tall envelope with document peeking out, small window */
+function House9x12Illustration() {
+  return (
+    <svg viewBox="0 0 170 190" className="w-[140px] h-[155px]">
+      {/* Document peeking out top-right */}
+      <rect x="65" y="5" width="90" height="120" rx="2" fill="#E8EAED" stroke="#C4C8CC" strokeWidth="1" />
+      {/* Lines on document */}
+      <rect x="78" y="22" width="50" height="6" rx="1" fill="#D1D5DB" />
+      <rect x="78" y="34" width="40" height="6" rx="1" fill="#D1D5DB" />
+
+      {/* Front envelope body */}
+      <rect x="8" y="30" width="130" height="155" rx="3" fill="white" stroke="#9CA3AF" strokeWidth="1.2" />
+      {/* Small window */}
+      <rect x="22" y="80" width="45" height="30" rx="2" fill="none" stroke="#9CA3AF" strokeWidth="1" strokeDasharray="3 2" />
+    </svg>
+  );
+}
+
+/** House 6x9 — tall envelope with triangular flap, document behind with address block */
+function House6x9Illustration() {
+  return (
+    <svg viewBox="0 0 170 190" className="w-[140px] h-[155px]">
+      {/* Back document */}
+      <rect x="50" y="5" width="105" height="140" rx="2" fill="#E8EAED" stroke="#C4C8CC" strokeWidth="1" />
+      {/* Address block on document */}
+      <rect x="65" y="45" width="55" height="18" rx="1" fill="none" stroke="#B0B5BC" strokeWidth="1" strokeDasharray="3 2" />
+      <rect x="65" y="70" width="68" height="18" rx="1" fill="none" stroke="#B0B5BC" strokeWidth="1" strokeDasharray="3 2" />
+
+      {/* Front envelope body */}
+      <rect x="8" y="35" width="125" height="150" rx="3" fill="white" stroke="#9CA3AF" strokeWidth="1.2" />
+      {/* Triangular flap */}
+      <polyline points="8,35 70,90 133,35" fill="none" stroke="#9CA3AF" strokeWidth="1" strokeDasharray="4 3" />
+    </svg>
+  );
+}
+
+function EnvelopeIllustration({ stockId }: { stockId: string }) {
+  switch (stockId) {
+    case 'house-10-dw': return <House10Illustration />;
+    case 'house-9x12': return <House9x12Illustration />;
+    case 'house-6x9': return <House6x9Illustration />;
+    default: return <House10Illustration />;
+  }
 }
 
 export default function StepMailOptions() {
@@ -152,43 +193,46 @@ export default function StepMailOptions() {
                 <button
                   key={stock.id}
                   className={cn(
-                    'min-w-[280px] sm:min-w-[320px] rounded-[20px] cursor-pointer transition-all text-left shrink-0 overflow-hidden',
+                    'min-w-[260px] sm:min-w-[280px] rounded-[16px] cursor-pointer transition-all text-left shrink-0 overflow-hidden group',
                     selected
-                      ? 'bg-primary shadow-md'
-                      : 'bg-white border border-border hover:shadow-sm',
+                      ? 'bg-[#242F42] shadow-lg ring-2 ring-[#242F42]'
+                      : 'bg-white border border-border hover:ring-2 hover:ring-[#0EA5E9] hover:border-transparent',
                   )}
                   onClick={() => setEnvelopeStock(stock.id)}
                 >
                   {/* Illustration area */}
-                  <div className="bg-[#F1F2F3] rounded-t-[20px] h-[180px] flex items-center justify-center">
-                    <EnvelopeIllustration shape={stock.shape} />
+                  <div className={cn(
+                    'rounded-t-[16px] h-[180px] flex items-center justify-center transition-colors',
+                    selected ? 'bg-white' : 'bg-[#F1F2F3] group-hover:bg-white',
+                  )}>
+                    <EnvelopeIllustration stockId={stock.id} />
                   </div>
 
                   {/* Content area */}
                   <div className="p-4 flex items-start justify-between gap-2">
                     <div>
                       <p className={cn(
-                        'text-[15px] font-medium leading-tight',
-                        selected ? 'text-white' : 'text-primary',
+                        'text-[14px] font-medium leading-tight',
+                        selected ? 'text-white' : 'text-text-primary group-hover:text-text-primary',
                       )}>
                         {stock.name}
                       </p>
                       <p className={cn(
-                        'text-[16px] font-medium mt-1',
-                        selected ? 'text-white' : 'text-primary',
+                        'text-[16px] font-semibold mt-1',
+                        selected ? 'text-white' : 'text-[#0EA5E9]',
                       )}>
                         $ {stock.pricePerUnit.toFixed(2)}
                       </p>
                       <p className={cn(
                         'text-[11px]',
-                        selected ? 'text-white/70' : 'text-text-secondary',
+                        selected ? 'text-white/60' : 'text-text-secondary',
                       )}>
                         Per unit price
                       </p>
                     </div>
                     <Info className={cn(
-                      'w-5 h-5 shrink-0 mt-1',
-                      selected ? 'text-white' : 'text-primary',
+                      'w-4.5 h-4.5 shrink-0 mt-0.5',
+                      selected ? 'text-white/60' : 'text-text-secondary group-hover:text-[#0EA5E9]',
                     )} />
                   </div>
                 </button>
