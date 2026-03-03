@@ -35,8 +35,6 @@ export default function CanvasPage({
   const scale = zoom / 100;
   const MARGIN = Math.round(pageWidth * 0.059); // ~0.5" at 96 DPI
 
-  const isPostcard = envelopeType === 'None';
-
   return (
     <div
       className="relative bg-white shadow-lg origin-top-left"
@@ -72,66 +70,29 @@ export default function CanvasPage({
         </div>
       )}
 
-      {/* Protected zones — only on Page 1 */}
-      {showPostage && isFirstPage && (
+      {/* Envelope windows — only on Page 1 for House 10 double window */}
+      {showPostage && isFirstPage && envelopeType === 'House 10' && (
         <>
-          {/* Logo placeholder */}
+          {/* Return address window — upper left */}
           <div
-            className="absolute border-2 border-dashed border-red-300 bg-red-50/40 flex items-center justify-center pointer-events-none"
-            style={{ top: MARGIN, left: MARGIN, width: 140, height: 60 }}
+            className="absolute border-2 border-dashed border-blue-300 bg-blue-50/30 flex flex-col items-center justify-center pointer-events-none"
+            style={{ top: MARGIN + 20, left: MARGIN + 30, width: 260, height: 70 }}
           >
-            <span className="text-[10px] text-red-400 font-medium uppercase">Logo Zone</span>
+            <span className="text-[10px] text-blue-400 font-medium uppercase mb-1">Return Address Window</span>
+            <div className="w-36 h-2.5 bg-blue-200/40 rounded-sm mb-1" />
+            <div className="w-28 h-2.5 bg-blue-200/40 rounded-sm" />
           </div>
 
-          {/* Postage area */}
+          {/* Recipient address window — below return address */}
           <div
-            className="absolute border-2 border-dashed border-red-300 bg-red-50/40 flex items-center justify-center pointer-events-none"
-            style={{ top: MARGIN, right: MARGIN, width: 100, height: 60 }}
+            className="absolute border-2 border-dashed border-blue-300 bg-blue-50/30 flex flex-col items-center justify-center pointer-events-none"
+            style={{ top: MARGIN + 110, left: MARGIN + 30, width: 300, height: 100 }}
           >
-            <span className="text-[10px] text-red-400 font-medium uppercase">Postage</span>
+            <span className="text-[10px] text-blue-400 font-medium uppercase mb-1">Address Window</span>
+            <div className="w-44 h-2.5 bg-blue-200/40 rounded-sm mb-1" />
+            <div className="w-36 h-2.5 bg-blue-200/40 rounded-sm mb-1" />
+            <div className="w-40 h-2.5 bg-blue-200/40 rounded-sm" />
           </div>
-
-          {/* Address block — position depends on envelope type */}
-          {isPostcard ? (
-            /* Postcard: address on right half, vertically centered */
-            <div
-              className="absolute border-2 border-dashed border-red-300 bg-red-50/40 flex flex-col items-center justify-center pointer-events-none"
-              style={{ top: Math.round(pageHeight / 2 - 60), right: MARGIN + 20, width: 250, height: 120 }}
-            >
-              <span className="text-[10px] text-red-400 font-medium uppercase mb-1">Address Block</span>
-              <div className="w-40 h-3 bg-red-200/50 rounded-sm mb-1" />
-              <div className="w-32 h-3 bg-red-200/50 rounded-sm mb-1" />
-              <div className="w-36 h-3 bg-red-200/50 rounded-sm" />
-            </div>
-          ) : (
-            /* Letters (House 10, 6x9, 9x12): address in upper portion */
-            <div
-              className="absolute border-2 border-dashed border-red-300 bg-red-50/40 flex flex-col items-center justify-center pointer-events-none"
-              style={{ top: MARGIN + 70, left: MARGIN + 40, width: 300, height: 120 }}
-            >
-              <span className="text-[10px] text-red-400 font-medium uppercase mb-1">Address Block</span>
-              <div className="w-48 h-3 bg-red-200/50 rounded-sm mb-1" />
-              <div className="w-40 h-3 bg-red-200/50 rounded-sm mb-1" />
-              <div className="w-44 h-3 bg-red-200/50 rounded-sm" />
-            </div>
-          )}
-
-          {/* Barcode area — below address block */}
-          {isPostcard ? (
-            <div
-              className="absolute border-2 border-dashed border-red-300 bg-red-50/40 flex items-center justify-center pointer-events-none"
-              style={{ top: Math.round(pageHeight / 2 + 70), right: MARGIN + 20, width: 250, height: 40 }}
-            >
-              <span className="text-[10px] text-red-400 font-medium uppercase">Barcode Area</span>
-            </div>
-          ) : (
-            <div
-              className="absolute border-2 border-dashed border-red-300 bg-red-50/40 flex items-center justify-center pointer-events-none"
-              style={{ top: MARGIN + 200, left: MARGIN + 40, width: 300, height: 40 }}
-            >
-              <span className="text-[10px] text-red-400 font-medium uppercase">Barcode Area</span>
-            </div>
-          )}
         </>
       )}
 
