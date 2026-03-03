@@ -1,4 +1,4 @@
-import { useCallback, useRef, useMemo, useEffect, useState } from 'react';
+import { useCallback, useRef, useMemo, useEffect } from 'react';
 import {
   Type, ImageIcon,
   QrCode, Minus, Table, Braces,
