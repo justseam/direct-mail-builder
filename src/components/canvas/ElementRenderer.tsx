@@ -1,7 +1,7 @@
 import { useCallback, useRef, useMemo, useEffect } from 'react';
 import {
-  Heading, Type, ImageIcon, MousePointer2, Puzzle,
-  Code, QrCode, Minus, Table, Braces,
+  Type, ImageIcon,
+  QrCode, Minus, Table, Braces,
 } from 'lucide-react';
 import { useCampaign } from '../../stores/CampaignStore';
 import { cn } from '../../utils';
@@ -18,13 +18,9 @@ interface ElementRendererProps {
   onStopEdit: () => void;
 }
 
-const iconMap: Record<string, typeof Heading> = {
-  heading: Heading,
+const iconMap: Record<string, typeof Type> = {
   text: Type,
   image: ImageIcon,
-  button: MousePointer2,
-  logo: Puzzle,
-  html: Code,
   qrcode: QrCode,
   divider: Minus,
   table: Table,
@@ -37,7 +33,7 @@ export default function ElementRenderer({ element, pageId, zoom, selected, editi
   const editRef = useRef<HTMLDivElement>(null);
 
   const scale = zoom / 100;
-  const isTextType = element.type === 'heading' || element.type === 'text';
+  const isTextType = element.type === 'text';
 
   // When entering edit mode, focus the contentEditable div
   useEffect(() => {
@@ -178,11 +174,6 @@ export default function ElementRenderer({ element, pageId, zoom, selected, editi
     >
       {/* Element content */}
       <div className="w-full h-full overflow-hidden">
-        {element.type === 'heading' && !editing && (
-          <div className="flex items-center h-full px-2">
-            <span className="text-xl font-bold text-text-primary" dangerouslySetInnerHTML={{ __html: element.content || '' }} />
-          </div>
-        )}
         {element.type === 'text' && !editing && (
           <div className="p-2 text-body-sm text-text-primary" dangerouslySetInnerHTML={{ __html: element.content || '' }} />
         )}
@@ -193,10 +184,7 @@ export default function ElementRenderer({ element, pageId, zoom, selected, editi
             ref={editRef}
             contentEditable
             suppressContentEditableWarning
-            className={cn(
-              'w-full h-full outline-none',
-              element.type === 'heading' ? 'flex items-center px-2 text-xl font-bold text-text-primary' : 'p-2 text-body-sm text-text-primary',
-            )}
+            className="w-full h-full outline-none p-2 text-body-sm text-text-primary"
             onBlur={handleBlur}
             onKeyDown={e => {
               if (e.key === 'Escape') {
@@ -211,14 +199,35 @@ export default function ElementRenderer({ element, pageId, zoom, selected, editi
         )}
 
         {element.type === 'image' && (
-          <div className="w-full h-full bg-gray-100 border border-dashed border-gray-300 flex flex-col items-center justify-center">
-            <ImageIcon className="w-8 h-8 text-gray-400" />
-            <span className="text-[11px] text-gray-400 mt-1">Drop Image</span>
-          </div>
-        )}
-        {element.type === 'button' && (
-          <div className="w-full h-full flex items-center justify-center bg-primary rounded-[8px] text-white text-body-md font-medium">
-            {element.content}
+          <div className="w-full h-full bg-[#E8EDF2] overflow-hidden relative">
+            {/* Landscape placeholder illustration */}
+            <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" className="w-full h-full">
+              {/* Sky gradient */}
+              <defs>
+                <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#B8D4E8" />
+                  <stop offset="100%" stopColor="#D6E6F2" />
+                </linearGradient>
+              </defs>
+              <rect width="400" height="300" fill="url(#sky)" />
+              {/* Hills */}
+              <path d="M0 220 Q100 150 200 200 Q300 170 400 210 L400 300 L0 300Z" fill="#8BAA7E" />
+              <path d="M0 250 Q150 190 250 230 Q350 200 400 240 L400 300 L0 300Z" fill="#6D9460" />
+              {/* Sun */}
+              <circle cx="320" cy="80" r="30" fill="#F2D98B" opacity="0.9" />
+              {/* Cloud */}
+              <g opacity="0.6">
+                <ellipse cx="120" cy="70" rx="35" ry="15" fill="white" />
+                <ellipse cx="145" cy="65" rx="25" ry="12" fill="white" />
+                <ellipse cx="100" cy="68" rx="20" ry="10" fill="white" />
+              </g>
+              {/* Camera icon overlay */}
+              <g transform="translate(175, 125)" opacity="0.35">
+                <rect x="0" y="10" width="50" height="35" rx="5" fill="white" />
+                <rect x="17" y="4" width="16" height="8" rx="2" fill="white" />
+                <circle cx="25" cy="27" r="10" fill="none" stroke="#999" strokeWidth="2" />
+              </g>
+            </svg>
           </div>
         )}
         {element.type === 'qrcode' && (
@@ -235,18 +244,13 @@ export default function ElementRenderer({ element, pageId, zoom, selected, editi
             <div className="w-full border-t-2 border-gray-300" />
           </div>
         )}
-        {element.type === 'logo' && (
-          <div className="w-full h-full bg-gray-50 border border-dashed border-gray-300 flex items-center justify-center">
-            <Puzzle className="w-6 h-6 text-gray-400" />
-          </div>
-        )}
         {element.type === 'variable' && (
           <div className="w-full h-full bg-amber-50 border border-dashed border-amber-300 flex items-center justify-center gap-1.5 px-2">
             <Braces className="w-4 h-4 text-amber-500 shrink-0" />
             <span className="text-body-sm text-amber-700 font-medium truncate">{element.content || 'variable'}</span>
           </div>
         )}
-        {!['heading', 'text', 'image', 'button', 'qrcode', 'divider', 'logo', 'variable'].includes(element.type) && (
+        {!['text', 'image', 'qrcode', 'divider', 'variable'].includes(element.type) && (
           <div className="w-full h-full bg-gray-50 border border-dashed border-gray-300 flex flex-col items-center justify-center">
             <Icon className="w-6 h-6 text-gray-400" />
             <span className="text-[11px] text-gray-400 mt-1 capitalize">{element.type}</span>

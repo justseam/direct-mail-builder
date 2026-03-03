@@ -60,12 +60,8 @@ export interface CanvasElement {
 }
 
 export type ElementType =
-  | 'heading'
   | 'text'
   | 'image'
-  | 'button'
-  | 'logo'
-  | 'html'
   | 'qrcode'
   | 'divider'
   | 'table'

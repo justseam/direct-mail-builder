@@ -8,7 +8,7 @@ import {
 import { Search, SlidersHorizontal, Plus, MoreHorizontal, ArrowUpDown } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
-import { audienceLists } from '../data/mockData';
+import { useCampaign } from '../stores/CampaignStore';
 import { formatNumber } from '../utils';
 import type { AudienceList } from '../types';
 
@@ -46,11 +46,12 @@ const columns = [
 
 export default function AudienceListPage() {
   const navigate = useNavigate();
+  const { audiences } = useCampaign();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
 
   const table = useReactTable({
-    data: audienceLists,
+    data: audiences,
     columns,
     state: { sorting, globalFilter },
     onSortingChange: setSorting,

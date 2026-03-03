@@ -13,12 +13,8 @@ import { PanelLeftClose, PanelLeftOpen, Minus, Plus, Maximize2 } from 'lucide-re
 
 export function getElementDefaults(type: ElementType, _pageWidth?: number): Pick<CanvasElement, 'width' | 'height' | 'content'> {
   switch (type) {
-    case 'heading': return { width: 300, height: 40, content: 'Heading Text' };
     case 'text': return { width: 250, height: 80, content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.' };
     case 'image': return { width: 200, height: 150, content: '' };
-    case 'button': return { width: 160, height: 44, content: 'Click Here' };
-    case 'logo': return { width: 120, height: 60, content: '' };
-    case 'html': return { width: 300, height: 200, content: '<div>Custom HTML</div>' };
     case 'qrcode': return { width: 100, height: 100, content: 'https://example.com' };
     case 'divider': return { width: 300, height: 2, content: '' };
     case 'table': return { width: 300, height: 150, content: '' };

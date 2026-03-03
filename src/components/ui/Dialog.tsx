@@ -7,9 +7,10 @@ interface DialogProps {
   onClose: () => void;
   title: string;
   children: ReactNode;
+  wide?: boolean;
 }
 
-export default function Dialog({ open, onClose, title, children }: DialogProps) {
+export default function Dialog({ open, onClose, title, children, wide }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -24,7 +25,7 @@ export default function Dialog({ open, onClose, title, children }: DialogProps) 
   return createPortal(
     <dialog
       ref={ref}
-      className="m-auto rounded-[12px] border border-border bg-white p-0 shadow-xl backdrop:bg-black/40 max-w-lg w-full"
+      className={`m-auto rounded-[12px] border border-border bg-white p-0 shadow-xl backdrop:bg-black/40 w-full ${wide ? 'max-w-3xl' : 'max-w-lg'}`}
       onClose={onClose}
     >
       <div className="flex items-center justify-between px-6 py-4 border-b border-border">

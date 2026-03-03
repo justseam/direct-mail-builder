@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from 'react';
-import type { CampaignDraft, CanvasPage, CanvasElement, FormatType, PostageType } from '../types';
+import type { CampaignDraft, CanvasPage, CanvasElement, FormatType, PostageType, AudienceList } from '../types';
 import { v4Id } from '../utils';
+import { audienceLists as defaultAudienceLists } from '../data/mockData';
 
 const defaultPage: CanvasPage = {
   id: '1',
@@ -23,6 +24,8 @@ const MAX_UNDO = 50;
 
 interface CampaignStoreValue {
   draft: CampaignDraft;
+  audiences: AudienceList[];
+  addAudienceList: (list: AudienceList) => void;
   setName: (name: string) => void;
   setAudience: (id: string) => void;
   setFormatType: (type: FormatType) => void;
@@ -45,7 +48,12 @@ const CampaignContext = createContext<CampaignStoreValue | null>(null);
 
 export function CampaignProvider({ children }: { children: ReactNode }) {
   const [draft, setDraft] = useState<CampaignDraft>({ ...defaultDraft, pages: [{ ...defaultPage }] });
+  const [audiences, setAudiences] = useState<AudienceList[]>([...defaultAudienceLists]);
   const undoStack = useRef<CampaignDraft[]>([]);
+
+  const addAudienceList = useCallback((list: AudienceList) => {
+    setAudiences(prev => [...prev, list]);
+  }, []);
 
   /** Push current state to undo stack before mutating */
   const pushUndo = useCallback(() => {
@@ -123,7 +131,8 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
 
   return (
     <CampaignContext.Provider value={{
-      draft, setName, setAudience, setFormatType, setPaperSize,
+      draft, audiences, addAudienceList,
+      setName, setAudience, setFormatType, setPaperSize,
       setPostageType, setPaperStock, setEnvelopeStock,
       addPage, removePage, addElement, updateElement, removeElement,
       loadDraft, resetDraft, undo, canUndo: undoStack.current.length > 0,

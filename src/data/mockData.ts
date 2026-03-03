@@ -52,9 +52,9 @@ export const sampleCSVHeaders = ['FIRST_NAME', 'LAST_NAME', 'ADDRESS_1', 'ADDRES
 
 export const sampleCSVData = [
   ['John', 'Smith', '123 Main St', 'Apt 4B', 'Springfield', 'IL', '62704', 'john@example.com'],
-  ['Jane', 'Doe', '456 Oak Ave', '', 'Portland', 'OR', '97201', 'jane@example.com'],
+  ['Jane', 'Doe', '456 Oak Ave', '', '', 'OR', '97201', 'jane@example.com'],
   ['Bob', 'Johnson', '789 Pine Rd', 'Suite 100', 'Austin', 'TX', '78701', 'bob@example.com'],
-  ['Alice', 'Williams', '321 Elm St', '', 'Denver', 'CO', '80202', 'alice@example.com'],
+  ['Alice', 'Williams', '321 Elm St', '', '', 'CO', '80202', 'alice@example.com'],
   ['Charlie', 'Brown', '654 Maple Dr', 'Unit 12', 'Seattle', 'WA', '98101', 'charlie@example.com'],
 ];
 

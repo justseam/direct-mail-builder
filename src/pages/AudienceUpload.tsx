@@ -5,12 +5,14 @@ import WizardShell from '../components/wizard/WizardShell';
 import Select from '../components/ui/Select';
 import Input from '../components/ui/Input';
 import { sampleCSVHeaders, sampleCSVData, mappableColumns } from '../data/mockData';
+import { useCampaign } from '../stores/CampaignStore';
 import { cn } from '../utils';
 
 const steps = ['Upload', 'Mapping', 'Review', 'Status'];
 
 export default function AudienceUpload() {
   const navigate = useNavigate();
+  const { addAudienceList } = useCampaign();
   const [step, setStep] = useState(0);
   const [fileName, setFileName] = useState('');
   const [listName, setListName] = useState('');
@@ -52,7 +54,16 @@ export default function AudienceUpload() {
       if (progress >= 100) {
         progress = 100;
         clearInterval(interval);
-        setTimeout(() => setUploadDone(true), 400);
+        setTimeout(() => {
+          setUploadDone(true);
+          addAudienceList({
+            id: `uploaded-${Date.now()}`,
+            name: listName || 'Imported Audience',
+            audienceCount: successRecords,
+            createdOn: new Date().toISOString().split('T')[0],
+            activeCampaigns: 0,
+          });
+        }, 400);
       }
       setUploadProgress(Math.min(100, Math.round(progress)));
     }, 300);
@@ -294,7 +305,7 @@ export default function AudienceUpload() {
                     <ul className="text-body-sm text-amber-700 space-y-1 ml-6 list-disc">
                       {errorRows.map(row => (
                         <li key={row}>
-                          Row {row + 1}: Missing required field (ADDRESS_2)
+                          Row {row + 1}: Missing required field (CITY)
                         </li>
                       ))}
                     </ul>

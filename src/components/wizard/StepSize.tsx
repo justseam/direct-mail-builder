@@ -122,13 +122,23 @@ export default function StepSize() {
 
         {/* Dots */}
         <div className="flex justify-center gap-2 mt-4">
-          {paperSizes.map(size => (
-            <span
+          {paperSizes.map((size, i) => (
+            <button
               key={size.id}
               className={cn(
-                'w-5 h-5 rounded-full transition-colors',
-                draft.paperSizeId === size.id ? 'bg-[#A9BBC6]' : 'bg-[#E9EFF3]',
+                'w-5 h-5 rounded-full transition-colors cursor-pointer',
+                draft.paperSizeId === size.id ? 'bg-[#A9BBC6]' : 'bg-[#E9EFF3] hover:bg-[#C5CDD3]',
               )}
+              onClick={() => {
+                setPaperSize(size.id);
+                const container = scrollRef.current;
+                if (container) {
+                  const cards = container.children;
+                  if (cards[i]) {
+                    (cards[i] as HTMLElement).scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                  }
+                }
+              }}
             />
           ))}
         </div>

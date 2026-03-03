@@ -8,7 +8,7 @@ import StepMailOptions from '../components/wizard/StepMailOptions';
 import StepDesign from '../components/wizard/StepDesign';
 import StepSummary from '../components/wizard/StepSummary';
 import { useCampaign } from '../stores/CampaignStore';
-import { campaigns, audienceLists, getPageDimensions } from '../data/mockData';
+import { campaigns, getPageDimensions } from '../data/mockData';
 import { formatCurrency, formatNumber, v4Id } from '../utils';
 import type { CampaignDraft, CanvasElement } from '../types';
 
@@ -26,12 +26,12 @@ function buildPlaceholderElements(pageWidth = 816, pageHeight = 1056): CanvasEle
   return [
     {
       id: v4Id(),
-      type: 'heading',
+      type: 'text',
       x: contentLeft,
       y: Math.round(80 * vScale),
       width: contentWidth,
       height: 44,
-      content: 'Important Update for You',
+      content: '<strong style="font-size:20px">Important Update for You</strong>',
     },
     {
       id: v4Id(),
@@ -111,7 +111,7 @@ function buildPlaceholderElements(pageWidth = 816, pageHeight = 1056): CanvasEle
 export default function CreateDirectMail() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { draft, setName, loadDraft, resetDraft } = useCampaign();
+  const { draft, audiences, setName, loadDraft, resetDraft } = useCampaign();
   const editId = (location.state as { editId?: string } | null)?.editId;
   const initialized = useRef(false);
 
@@ -127,7 +127,7 @@ export default function CreateDirectMail() {
       if (!campaign) return;
 
       // Find the matching audience
-      const audience = audienceLists.find(a => a.name === campaign.audience);
+      const audience = audiences.find(a => a.name === campaign.audience);
 
       const paperSizeId = 'letter-10';
       const { width: pw, height: ph } = getPageDimensions(paperSizeId);
@@ -156,7 +156,9 @@ export default function CreateDirectMail() {
     }
   }, [editId, loadDraft, resetDraft]);
 
-  const audienceCount = draft.audienceId ? 2450 : 0;
+  const audienceCount = draft.audienceId
+    ? audiences.find(a => a.id === draft.audienceId)?.audienceCount || 0
+    : 0;
 
   const statsBar = (
     <div className="flex items-center gap-4 text-[12px] shrink-0">

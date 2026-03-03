@@ -1,6 +1,6 @@
 import {
-  Heading, Type, ImageIcon, MousePointer2, Puzzle,
-  Code, QrCode, Minus, Table, Braces,
+  Type, ImageIcon,
+  QrCode, Minus, Table, Braces,
 } from 'lucide-react';
 import type { ElementType } from '../../types';
 
@@ -12,14 +12,10 @@ const categories = [
   {
     label: 'Build',
     items: [
-      { type: 'heading' as ElementType, label: 'Heading', icon: Heading },
       { type: 'text' as ElementType, label: 'Text', icon: Type },
       { type: 'image' as ElementType, label: 'Image', icon: ImageIcon },
-      { type: 'button' as ElementType, label: 'Button', icon: MousePointer2 },
-      { type: 'logo' as ElementType, label: 'Logo', icon: Puzzle },
       { type: 'divider' as ElementType, label: 'Divider', icon: Minus },
       { type: 'table' as ElementType, label: 'Table', icon: Table },
-      { type: 'html' as ElementType, label: 'HTML', icon: Code },
     ],
   },
   {

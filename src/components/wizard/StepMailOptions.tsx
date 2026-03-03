@@ -247,6 +247,29 @@ export default function StepMailOptions() {
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
+
+        {/* Dots */}
+        <div className="flex justify-center gap-2 mt-4">
+          {envelopeStocks.map((stock, i) => (
+            <button
+              key={stock.id}
+              className={cn(
+                'w-5 h-5 rounded-full transition-colors cursor-pointer',
+                draft.envelopeStockId === stock.id ? 'bg-[#A9BBC6]' : 'bg-[#E9EFF3] hover:bg-[#C5CDD3]',
+              )}
+              onClick={() => {
+                setEnvelopeStock(stock.id);
+                const container = envScrollRef.current;
+                if (container) {
+                  const cards = container.children;
+                  if (cards[i]) {
+                    (cards[i] as HTMLElement).scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                  }
+                }
+              }}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -18,7 +18,7 @@ export default function PropertiesPanel({ element, pageId, onClose }: Properties
     updateElement(pageId, element.id, updates);
   };
 
-  const isText = element.type === 'heading' || element.type === 'text';
+  const isText = element.type === 'text';
   const isImage = element.type === 'image';
 
   return (
@@ -107,17 +107,6 @@ export default function PropertiesPanel({ element, pageId, onClose }: Properties
           </div>
         )}
 
-        {/* Button properties */}
-        {element.type === 'button' && (
-          <div>
-            <h4 className="text-label-sm font-semibold text-text-secondary uppercase mb-2">Button</h4>
-            <Input
-              label="Label"
-              value={element.content || ''}
-              onChange={e => update({ content: e.target.value })}
-            />
-          </div>
-        )}
       </div>
 
       {/* Delete */}
