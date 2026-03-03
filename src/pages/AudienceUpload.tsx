@@ -300,9 +300,28 @@ export default function AudienceUpload() {
                     <div className="flex items-center gap-2 mb-2">
                       <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
                       <p className="text-body-sm font-medium text-amber-800">
-                        {errorCount} records skipped due to missing required fields
+                        {errorCount} records skipped
                       </p>
                     </div>
+                    <p className="text-body-sm text-amber-700 mb-3">
+                      Reason: Missing required field <span className="font-semibold">CITY</span>
+                    </p>
+                    <button
+                      onClick={() => {
+                        const csv = 'FIRST_NAME,LAST_NAME,ADDRESS_1,ADDRESS_2,CITY,STATE,ZIP,EMAIL\nJane,Doe,456 Oak Ave,,,OR,97201,jane@example.com\nAlice,Williams,321 Elm St,,,CO,80202,alice@example.com';
+                        const blob = new Blob([csv], { type: 'text/csv' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'failed_records.csv';
+                        a.click();
+                        URL.revokeObjectURL(url);
+                      }}
+                      className="inline-flex items-center gap-1.5 text-amber-800 text-body-sm font-medium hover:underline cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      Download failed records CSV
+                    </button>
                   </div>
                 )}
               </>

@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import ElementRenderer from './ElementRenderer';
 import type { CanvasPage as CanvasPageType } from '../../types';
 
@@ -17,7 +18,7 @@ interface CanvasPageProps {
   onStopEdit: () => void;
 }
 
-export default function CanvasPage({
+const CanvasPage = forwardRef<HTMLDivElement, CanvasPageProps>(function CanvasPage({
   page,
   pageWidth,
   pageHeight,
@@ -31,12 +32,13 @@ export default function CanvasPage({
   onSelectElement,
   onStartEdit,
   onStopEdit,
-}: CanvasPageProps) {
+}, ref) {
   const scale = zoom / 100;
   const MARGIN = Math.round(pageWidth * 0.059); // ~0.5" at 96 DPI
 
   return (
     <div
+      ref={ref}
       className="relative bg-white shadow-lg origin-top-left"
       style={{
         width: pageWidth,
@@ -112,4 +114,6 @@ export default function CanvasPage({
       )}
     </div>
   );
-}
+});
+
+export default CanvasPage;

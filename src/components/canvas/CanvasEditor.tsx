@@ -34,6 +34,10 @@ export default function CanvasEditor() {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(
     typeof window !== 'undefined' && window.innerWidth >= 768
   );
+  const [drawingTable, setDrawingTable] = useState(false);
+  const [tableDrawStart, setTableDrawStart] = useState<{ x: number; y: number } | null>(null);
+  const [tableDrawEnd, setTableDrawEnd] = useState<{ x: number; y: number } | null>(null);
+  const canvasPageRef = useRef<HTMLDivElement>(null);
 
   // Sync activePageId when draft pages change (e.g. after loadDraft)
   useEffect(() => {
@@ -87,6 +91,12 @@ export default function CanvasEditor() {
 
   const handleAddElement = useCallback((type: ElementType) => {
     if (!activePageId) return;
+    if (type === 'table') {
+      setDrawingTable(true);
+      setSelectedElementId(null);
+      setEditingElementId(null);
+      return;
+    }
     const defaults = getElementDefaults(type, pageW);
     const offset = (addCountRef.current % 8) * 30;
     addCountRef.current += 1;
@@ -100,6 +110,65 @@ export default function CanvasEditor() {
     addElement(activePageId, newElement);
     setSelectedElementId(newElement.id);
   }, [activePageId, addElement, pageW]);
+
+  // Table draw handlers
+  const handleTableDrawStart = useCallback((e: React.MouseEvent) => {
+    if (!drawingTable || !canvasPageRef.current) return;
+    const rect = canvasPageRef.current.getBoundingClientRect();
+    const scale = zoom / 100;
+    const x = (e.clientX - rect.left) / scale;
+    const y = (e.clientY - rect.top) / scale;
+    setTableDrawStart({ x, y });
+    setTableDrawEnd({ x, y });
+  }, [drawingTable, zoom]);
+
+  const handleTableDrawMove = useCallback((e: React.MouseEvent) => {
+    if (!tableDrawStart || !canvasPageRef.current) return;
+    const rect = canvasPageRef.current.getBoundingClientRect();
+    const scale = zoom / 100;
+    const x = (e.clientX - rect.left) / scale;
+    const y = (e.clientY - rect.top) / scale;
+    setTableDrawEnd({ x, y });
+  }, [tableDrawStart, zoom]);
+
+  const handleTableDrawEnd = useCallback(() => {
+    if (!tableDrawStart || !tableDrawEnd || !activePageId) {
+      setDrawingTable(false);
+      setTableDrawStart(null);
+      setTableDrawEnd(null);
+      return;
+    }
+    const x = Math.min(tableDrawStart.x, tableDrawEnd.x);
+    const y = Math.min(tableDrawStart.y, tableDrawEnd.y);
+    const w = Math.abs(tableDrawEnd.x - tableDrawStart.x);
+    const h = Math.abs(tableDrawEnd.y - tableDrawStart.y);
+
+    // Minimum size check
+    if (w < 60 || h < 30) {
+      setDrawingTable(false);
+      setTableDrawStart(null);
+      setTableDrawEnd(null);
+      return;
+    }
+
+    // Calculate rows and cols from drawn size (roughly 40px per row, 80px per col)
+    const cols = Math.max(1, Math.min(10, Math.round(w / 80)));
+    const rows = Math.max(1, Math.min(10, Math.round(h / 40)));
+
+    const newElement: CanvasElement = {
+      id: v4Id(),
+      type: 'table',
+      x, y,
+      width: w,
+      height: h,
+      content: `${rows},${cols}`,
+    };
+    addElement(activePageId, newElement);
+    setSelectedElementId(newElement.id);
+    setDrawingTable(false);
+    setTableDrawStart(null);
+    setTableDrawEnd(null);
+  }, [tableDrawStart, tableDrawEnd, activePageId, addElement]);
 
   return (
     <div className="flex h-full relative">
@@ -158,9 +227,37 @@ export default function CanvasEditor() {
         </div>
 
         {/* Canvas scroll area */}
-        <div className="flex-1 bg-canvas-bg overflow-auto flex items-start justify-center p-4 sm:p-8 relative">
+        <div className={`flex-1 bg-canvas-bg overflow-auto flex items-start justify-center p-4 sm:p-8 relative ${drawingTable ? 'cursor-crosshair' : ''}`}>
+          {/* Draw mode indicator */}
+          {drawingTable && (
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 bg-primary text-white text-body-sm font-medium px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2">
+              Click and drag to draw a table
+              <button onClick={() => { setDrawingTable(false); setTableDrawStart(null); setTableDrawEnd(null); }} className="ml-1 hover:bg-white/20 rounded-full p-0.5 cursor-pointer">✕</button>
+            </div>
+          )}
           {activePage && (
-            <div className="relative">
+            <div
+              className="relative"
+              onMouseDown={drawingTable ? handleTableDrawStart : undefined}
+              onMouseMove={drawingTable && tableDrawStart ? handleTableDrawMove : undefined}
+              onMouseUp={drawingTable && tableDrawStart ? handleTableDrawEnd : undefined}
+            >
+              {/* Table draw preview */}
+              {drawingTable && tableDrawStart && tableDrawEnd && (
+                <div
+                  className="absolute border-2 border-dashed border-primary bg-primary/10 pointer-events-none z-20"
+                  style={{
+                    left: Math.min(tableDrawStart.x, tableDrawEnd.x) * (zoom / 100),
+                    top: Math.min(tableDrawStart.y, tableDrawEnd.y) * (zoom / 100),
+                    width: Math.abs(tableDrawEnd.x - tableDrawStart.x) * (zoom / 100),
+                    height: Math.abs(tableDrawEnd.y - tableDrawStart.y) * (zoom / 100),
+                  }}
+                >
+                  <span className="absolute -top-5 left-0 text-[10px] text-primary font-medium">
+                    {Math.max(1, Math.min(10, Math.round(Math.abs(tableDrawEnd.y - tableDrawStart.y) / 40)))}R × {Math.max(1, Math.min(10, Math.round(Math.abs(tableDrawEnd.x - tableDrawStart.x) / 80)))}C
+                  </span>
+                </div>
+              )}
               {/* WYSIWYG toolbar - floats above the editing element */}
               {editingElement && (
                 <WysiwygToolbar
@@ -170,6 +267,7 @@ export default function CanvasEditor() {
                 />
               )}
               <CanvasPage
+                ref={canvasPageRef}
                 page={activePage}
                 pageWidth={pageW}
                 pageHeight={pageH}
@@ -197,8 +295,8 @@ export default function CanvasEditor() {
         </div>
       </div>
 
-      {/* Right Sidebar — Properties (only for image and QR code elements) */}
-      {selectedElement && (selectedElement.type === 'image' || selectedElement.type === 'qrcode') && (
+      {/* Right Sidebar — Properties (image, QR code, and table elements) */}
+      {selectedElement && (selectedElement.type === 'image' || selectedElement.type === 'qrcode' || selectedElement.type === 'table') && (
         <div className="absolute right-0 top-0 bottom-0 z-20 md:relative md:z-auto">
           <PropertiesPanel
             element={selectedElement}

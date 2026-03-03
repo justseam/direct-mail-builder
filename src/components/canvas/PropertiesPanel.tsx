@@ -107,6 +107,38 @@ export default function PropertiesPanel({ element, pageId, onClose }: Properties
           </div>
         )}
 
+        {/* Table properties */}
+        {element.type === 'table' && (() => {
+          const parsed = (element.content || '3,3').split(',').map(Number);
+          const rows = parsed[0] || 3;
+          const cols = parsed[1] || 3;
+          return (
+            <div>
+              <h4 className="text-label-sm font-semibold text-text-secondary uppercase mb-2">Table</h4>
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  label="Rows"
+                  type="number"
+                  value={rows}
+                  onChange={e => {
+                    const r = Math.max(1, Math.min(20, +e.target.value));
+                    update({ content: `${r},${cols}` });
+                  }}
+                />
+                <Input
+                  label="Columns"
+                  type="number"
+                  value={cols}
+                  onChange={e => {
+                    const c = Math.max(1, Math.min(20, +e.target.value));
+                    update({ content: `${rows},${c}` });
+                  }}
+                />
+              </div>
+            </div>
+          );
+        })()}
+
       </div>
 
       {/* Delete */}

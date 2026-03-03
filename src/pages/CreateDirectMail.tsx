@@ -111,7 +111,7 @@ function buildPlaceholderElements(pageWidth = 816, pageHeight = 1056): CanvasEle
 export default function CreateDirectMail() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { draft, audiences, setName, loadDraft, resetDraft } = useCampaign();
+  const { draft, audiences, setName, loadDraft, resetDraft, saveCampaign } = useCampaign();
   const editId = (location.state as { editId?: string } | null)?.editId;
   const initialized = useRef(false);
 
@@ -217,6 +217,7 @@ export default function CreateDirectMail() {
           setStep(next);
           setHighestStep(h => Math.max(h, next));
         } else {
+          saveCampaign();
           navigate('/');
         }
       }}

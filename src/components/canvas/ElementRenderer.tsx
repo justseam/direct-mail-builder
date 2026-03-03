@@ -95,18 +95,37 @@ export default function ElementRenderer({ element, pageId, zoom, selected, editi
   const scale = zoom / 100;
   const isTextType = element.type === 'text';
 
-  // When entering edit mode, focus the contentEditable div
+  // Track latest content during editing so it's always saved
+  const latestContentRef = useRef(element.content || '');
+
+  // When entering edit mode, focus the contentEditable div and set content
   useEffect(() => {
     if (editing && editRef.current) {
+      editRef.current.innerHTML = element.content || '';
+      latestContentRef.current = element.content || '';
       editRef.current.focus();
-      // Place cursor at end
       const sel = window.getSelection();
       if (sel) {
         sel.selectAllChildren(editRef.current);
         sel.collapseToEnd();
       }
     }
-  }, [editing]);
+  }, [editing]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Save content when editing transitions from true to false
+  const wasEditingRef = useRef(false);
+  useEffect(() => {
+    if (wasEditingRef.current && !editing) {
+      updateElement(pageId, element.id, { content: latestContentRef.current });
+    }
+    wasEditingRef.current = editing;
+  }); // runs every render to catch editing transition
+
+  const handleInput = useCallback(() => {
+    if (editRef.current) {
+      latestContentRef.current = editRef.current.innerHTML;
+    }
+  }, []);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (editing) return; // don't drag while editing
@@ -246,6 +265,7 @@ export default function ElementRenderer({ element, pageId, zoom, selected, editi
             suppressContentEditableWarning
             className="w-full h-full outline-none p-2 text-body-sm text-text-primary"
             onBlur={handleBlur}
+            onInput={handleInput}
             onKeyDown={e => {
               if (e.key === 'Escape') {
                 e.preventDefault();
@@ -254,7 +274,6 @@ export default function ElementRenderer({ element, pageId, zoom, selected, editi
               e.stopPropagation();
             }}
             onMouseDown={e => e.stopPropagation()}
-            dangerouslySetInnerHTML={{ __html: element.content || '' }}
           />
         )}
 

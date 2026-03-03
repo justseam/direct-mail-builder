@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from 'react';
-import type { CampaignDraft, CanvasPage, CanvasElement, FormatType, PostageType, AudienceList } from '../types';
+import type { Campaign, CampaignDraft, CanvasPage, CanvasElement, FormatType, PostageType, AudienceList } from '../types';
 import { v4Id } from '../utils';
-import { audienceLists as defaultAudienceLists } from '../data/mockData';
+import { audienceLists as defaultAudienceLists, campaigns as defaultCampaigns } from '../data/mockData';
 
 const defaultPage: CanvasPage = {
   id: '1',
@@ -26,7 +26,9 @@ const MAX_UNDO = 50;
 interface CampaignStoreValue {
   draft: CampaignDraft;
   audiences: AudienceList[];
+  campaignList: Campaign[];
   addAudienceList: (list: AudienceList) => void;
+  saveCampaign: () => void;
   setName: (name: string) => void;
   setAudience: (id: string) => void;
   setFormatType: (type: FormatType) => void;
@@ -51,11 +53,28 @@ const CampaignContext = createContext<CampaignStoreValue | null>(null);
 export function CampaignProvider({ children }: { children: ReactNode }) {
   const [draft, setDraft] = useState<CampaignDraft>({ ...defaultDraft, pages: [{ ...defaultPage }] });
   const [audiences, setAudiences] = useState<AudienceList[]>([...defaultAudienceLists]);
+  const [campaignList, setCampaignList] = useState<Campaign[]>([...defaultCampaigns]);
   const undoStack = useRef<CampaignDraft[]>([]);
 
   const addAudienceList = useCallback((list: AudienceList) => {
     setAudiences(prev => [...prev, list]);
   }, []);
+
+  const saveCampaign = useCallback(() => {
+    const audience = audiences.find(a => a.id === draft.audienceId);
+    const audienceCount = audience?.audienceCount || 0;
+    const newCampaign: Campaign = {
+      id: `campaign-${Date.now()}`,
+      name: draft.name,
+      status: 'active',
+      postageType: draft.postageType === 'first-class' ? 'First Class' : 'Marketing',
+      audience: audience?.name || 'Unknown',
+      postageCost: audienceCount * 0.55,
+      printingCost: audienceCount * 0.35,
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setCampaignList(prev => [newCampaign, ...prev]);
+  }, [draft, audiences]);
 
   /** Push current state to undo stack before mutating */
   const pushUndo = useCallback(() => {
@@ -134,7 +153,7 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
 
   return (
     <CampaignContext.Provider value={{
-      draft, audiences, addAudienceList,
+      draft, audiences, campaignList, addAudienceList, saveCampaign,
       setName, setAudience, setFormatType, setPaperSize,
       setPostageType, setReturnAddress, setPaperStock, setEnvelopeStock,
       addPage, removePage, addElement, updateElement, removeElement,

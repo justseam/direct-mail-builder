@@ -6,23 +6,23 @@ import {
   createColumnHelper, flexRender,
   type SortingState,
 } from '@tanstack/react-table';
-import { Search, SlidersHorizontal, LayoutGrid, Plus, ArrowUpDown, MoreHorizontal, Pencil, Copy, Trash2 } from 'lucide-react';
+import { Search, Plus, ArrowUpDown, MoreHorizontal, Pencil, Copy, Archive } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Tabs from '../components/ui/Tabs';
 import StatusDot from '../components/ui/StatusDot';
 import Dialog from '../components/ui/Dialog';
 import AudienceListPage from './AudienceList';
-import { campaigns as initialCampaigns } from '../data/mockData';
+import { useCampaign } from '../stores/CampaignStore';
 import { formatCurrency } from '../utils';
 import type { Campaign } from '../types';
 
 /* ── Row Actions Dropdown ─────────────────────── */
-function RowActions({ campaign, onEdit, onClone, onDelete }: {
+function RowActions({ campaign, onEdit, onClone, onArchive }: {
   campaign: Campaign;
   onEdit: () => void;
   onClone: () => void;
-  onDelete: () => void;
+  onArchive: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -65,11 +65,11 @@ function RowActions({ campaign, onEdit, onClone, onDelete }: {
             Clone
           </button>
           <button
-            onClick={() => { setOpen(false); onDelete(); }}
-            className="flex items-center gap-2.5 w-full px-3 py-2 text-body-sm text-red-600 hover:bg-red-50 cursor-pointer text-left"
+            onClick={() => { setOpen(false); onArchive(); }}
+            className="flex items-center gap-2.5 w-full px-3 py-2 text-body-sm text-text-primary hover:bg-gray-50 cursor-pointer text-left"
           >
-            <Trash2 className="w-3.5 h-3.5" />
-            Delete
+            <Archive className="w-3.5 h-3.5 text-text-secondary" />
+            Archive
           </button>
         </div>
       )}
@@ -127,12 +127,18 @@ const baseColumns = [
 
 export default function DirectMailList({ initialTab = 'direct-mail' }: { initialTab?: string }) {
   const navigate = useNavigate();
+  const { campaignList } = useCampaign();
   const [tab, setTab] = useState(initialTab);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
   const [rowSelection, setRowSelection] = useState({});
-  const [data, setData] = useState<Campaign[]>(() => [...initialCampaigns]);
-  const [deleteTarget, setDeleteTarget] = useState<Campaign | null>(null);
+  const [data, setData] = useState<Campaign[]>(() => [...campaignList]);
+  const [archiveTarget, setArchiveTarget] = useState<Campaign | null>(null);
+
+  // Sync data when campaignList changes (e.g. after launching a campaign)
+  useEffect(() => {
+    setData([...campaignList]);
+  }, [campaignList]);
 
   const handleEdit = useCallback((campaign: Campaign) => {
     navigate('/campaigns/new', { state: { editId: campaign.id } });
@@ -151,11 +157,18 @@ export default function DirectMailList({ initialTab = 'direct-mail' }: { initial
     setData(prev => [cloned, ...prev]);
   }, []);
 
-  const handleDelete = useCallback(() => {
-    if (!deleteTarget) return;
-    setData(prev => prev.filter(c => c.id !== deleteTarget.id));
-    setDeleteTarget(null);
-  }, [deleteTarget]);
+  const handleArchive = useCallback((target?: Campaign) => {
+    const t = target || archiveTarget;
+    if (!t) return;
+    setData(prev => prev.map(c => c.id === t.id ? { ...c, status: 'inactive' as const } : c));
+    setArchiveTarget(null);
+  }, [archiveTarget]);
+
+  const handleBulkArchive = useCallback(() => {
+    const selectedIds = Object.keys(rowSelection).map(idx => data[+idx]?.id).filter(Boolean);
+    setData(prev => prev.map(c => selectedIds.includes(c.id) ? { ...c, status: 'inactive' as const } : c));
+    setRowSelection({});
+  }, [rowSelection, data]);
 
   const columns = useMemo(() => [
     ...baseColumns,
@@ -167,7 +180,7 @@ export default function DirectMailList({ initialTab = 'direct-mail' }: { initial
           campaign={row.original}
           onEdit={() => handleEdit(row.original)}
           onClone={() => handleClone(row.original)}
-          onDelete={() => setDeleteTarget(row.original)}
+          onArchive={() => setArchiveTarget(row.original)}
         />
       ),
       size: 50,
@@ -224,12 +237,6 @@ export default function DirectMailList({ initialTab = 'direct-mail' }: { initial
             {tab === 'direct-mail' ? 'Direct Mail' : 'Mail Templates'}
           </h1>
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-            <button className="p-2 hover:bg-gray-100 rounded-[8px] text-text-secondary cursor-pointer hidden sm:block">
-              <LayoutGrid className="w-5 h-5" />
-            </button>
-            <button className="p-2 hover:bg-gray-100 rounded-[8px] text-text-secondary cursor-pointer hidden sm:block">
-              <SlidersHorizontal className="w-5 h-5" />
-            </button>
             <Input
               placeholder="Search..."
               icon={<Search className="w-4 h-4" />}
@@ -246,6 +253,23 @@ export default function DirectMailList({ initialTab = 'direct-mail' }: { initial
             </Button>
           </div>
         </div>
+
+        {/* Bulk action bar */}
+        {Object.keys(rowSelection).length > 0 && (
+          <div className="flex items-center gap-3 mb-3 p-3 bg-primary/5 border border-primary/20 rounded-[12px]">
+            <span className="text-body-sm font-medium text-text-primary">
+              {Object.keys(rowSelection).length} selected
+            </span>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<Archive className="w-3.5 h-3.5" />}
+              onClick={handleBulkArchive}
+            >
+              Archive
+            </Button>
+          </div>
+        )}
 
         <div className="bg-white rounded-[12px] border border-border overflow-x-auto">
           <table className="w-full">
@@ -313,26 +337,25 @@ export default function DirectMailList({ initialTab = 'direct-mail' }: { initial
 
       )}
 
-      {/* Delete confirmation dialog */}
+      {/* Archive confirmation dialog */}
       <Dialog
-        open={!!deleteTarget}
-        onClose={() => setDeleteTarget(null)}
-        title="Delete Campaign"
+        open={!!archiveTarget}
+        onClose={() => setArchiveTarget(null)}
+        title="Archive Campaign"
       >
         <p className="text-body-md text-text-secondary mb-1">
-          Are you sure you want to delete <span className="font-medium text-text-primary">{deleteTarget?.name}</span>?
+          Are you sure you want to archive <span className="font-medium text-text-primary">{archiveTarget?.name}</span>?
         </p>
-        <p className="text-body-sm text-text-secondary mb-6">This action cannot be undone.</p>
+        <p className="text-body-sm text-text-secondary mb-6">The campaign will be moved to inactive status.</p>
         <div className="flex justify-end gap-2">
-          <Button variant="secondary" size="sm" onClick={() => setDeleteTarget(null)}>
+          <Button variant="secondary" size="sm" onClick={() => setArchiveTarget(null)}>
             Cancel
           </Button>
           <Button
             size="sm"
-            onClick={handleDelete}
-            className="!bg-red-600 hover:!bg-red-700"
+            onClick={() => handleArchive()}
           >
-            Delete
+            Archive
           </Button>
         </div>
       </Dialog>
