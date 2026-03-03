@@ -4,9 +4,9 @@ import { cn } from '../../utils';
 
 const dotColors: Record<CampaignStatus, string> = {
   draft: 'bg-status-draft',
-  launching: 'bg-status-active',
+  launching: 'bg-yellow-400',
   completed: 'bg-status-completed',
-  archived: 'bg-status-inactive',
+  archived: 'bg-blue-400',
 };
 
 export default function StatusDot({ status }: { status: CampaignStatus }) {
