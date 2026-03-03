@@ -39,7 +39,6 @@ export const paperStocks: PaperStock[] = [
   { id: 'stock-20-85x11', name: '20# paper (8.5x11)', description: '20 lbs, both side matte, weight 0.165', weightValue: '0.165', sheetCount: 2000, pricePerUnit: 0.020 },
   { id: 'stock-24-85x11', name: '24# paper (8.5x11)', description: '24 lbs, both side matte, weight 0.195', weightValue: '0.195', sheetCount: 2000, pricePerUnit: 0.023 },
   { id: 'stock-28-85x11', name: '28# paper (8.5x11)', description: '28 lbs, both side matte, weight 0.220', weightValue: '0.220', sheetCount: 1500, pricePerUnit: 0.028 },
-  { id: 'stock-32-85x11', name: '32# paper (8.5x11)', description: '32 lbs, both side gloss, weight 0.250', weightValue: '0.250', sheetCount: 1000, pricePerUnit: 0.035 },
 ];
 
 export const envelopeStocks: EnvelopeStock[] = [

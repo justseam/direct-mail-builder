@@ -28,7 +28,7 @@ const iconMap: Record<string, typeof Type> = {
 };
 
 /** Interactive table sub-component with add row/column handles */
-function TableElement({ element, pageId }: { element: CanvasElement; pageId: string }) {
+function TableElement({ element, pageId, editing }: { element: CanvasElement; pageId: string; editing: boolean }) {
   const { updateElement } = useCampaign();
   // Derive grid dimensions directly from element.content — default 3x3
   const parsed = (element.content || '3,3').split(',').map(Number);
@@ -45,7 +45,10 @@ function TableElement({ element, pageId }: { element: CanvasElement; pageId: str
   };
 
   return (
-    <div className="w-full h-full flex flex-col relative" onMouseDown={e => e.stopPropagation()}>
+    <div
+      className="w-full h-full flex flex-col relative"
+      onMouseDown={editing ? e => e.stopPropagation() : undefined}
+    >
       <div className="flex-1 overflow-hidden">
         <table className="w-full h-full border-collapse">
           <tbody>
@@ -55,9 +58,9 @@ function TableElement({ element, pageId }: { element: CanvasElement; pageId: str
                   <td
                     key={c}
                     className="border border-gray-300 text-[10px] text-gray-500 text-center p-1"
-                    contentEditable
+                    contentEditable={editing}
                     suppressContentEditableWarning
-                    onMouseDown={e => e.stopPropagation()}
+                    onMouseDown={editing ? e => e.stopPropagation() : undefined}
                   >
                     {r === 0 ? `Col ${c + 1}` : ''}
                   </td>
@@ -67,18 +70,21 @@ function TableElement({ element, pageId }: { element: CanvasElement; pageId: str
           </tbody>
         </table>
       </div>
-      {/* Add row handle */}
-      <button
-        onClick={addRow}
-        className="absolute -bottom-5 left-1/2 -translate-x-1/2 w-6 h-5 bg-primary text-white rounded-b text-[11px] font-bold flex items-center justify-center cursor-pointer hover:bg-primary/80 z-10"
-        title="Add row"
-      >+</button>
-      {/* Add col handle */}
-      <button
-        onClick={addCol}
-        className="absolute -right-5 top-1/2 -translate-y-1/2 w-5 h-6 bg-primary text-white rounded-r text-[11px] font-bold flex items-center justify-center cursor-pointer hover:bg-primary/80 z-10"
-        title="Add column"
-      >+</button>
+      {/* Add row/col handles — only show when editing */}
+      {editing && (
+        <>
+          <button
+            onClick={addRow}
+            className="absolute -bottom-5 left-1/2 -translate-x-1/2 w-6 h-5 bg-primary text-white rounded-b text-[11px] font-bold flex items-center justify-center cursor-pointer hover:bg-primary/80 z-10"
+            title="Add row"
+          >+</button>
+          <button
+            onClick={addCol}
+            className="absolute -right-5 top-1/2 -translate-y-1/2 w-5 h-6 bg-primary text-white rounded-r text-[11px] font-bold flex items-center justify-center cursor-pointer hover:bg-primary/80 z-10"
+            title="Add column"
+          >+</button>
+        </>
+      )}
     </div>
   );
 }
@@ -90,6 +96,8 @@ export default function ElementRenderer({ element, pageId, zoom, selected, editi
 
   const scale = zoom / 100;
   const isTextType = element.type === 'text';
+  const isTableType = element.type === 'table';
+  const isEditable = isTextType || isTableType;
 
   // Track latest content during editing so it's always saved
   const latestContentRef = useRef(element.content || '');
@@ -156,10 +164,10 @@ export default function ElementRenderer({ element, pageId, zoom, selected, editi
   }, [element.x, element.y, element.id, pageId, scale, updateElement, onSelect, editing]);
 
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
-    if (!isTextType) return;
+    if (!isEditable) return;
     e.stopPropagation();
     onStartEdit();
-  }, [isTextType, onStartEdit]);
+  }, [isEditable, onStartEdit]);
 
   const handleBlur = useCallback((e?: React.FocusEvent) => {
     if (!editing) return;
@@ -326,7 +334,7 @@ export default function ElementRenderer({ element, pageId, zoom, selected, editi
           </div>
         )}
         {element.type === 'table' && (
-          <TableElement element={element} pageId={pageId} />
+          <TableElement element={element} pageId={pageId} editing={editing} />
         )}
         {!['text', 'image', 'qrcode', 'divider', 'variable', 'table'].includes(element.type) && (
           <div className="w-full h-full bg-gray-50 border border-dashed border-gray-300 flex flex-col items-center justify-center">
