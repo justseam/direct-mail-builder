@@ -160,13 +160,13 @@ export default function DirectMailList({ initialTab = 'direct-mail' }: { initial
   const handleArchive = useCallback((target?: Campaign) => {
     const t = target || archiveTarget;
     if (!t) return;
-    setData(prev => prev.map(c => c.id === t.id ? { ...c, status: 'inactive' as const } : c));
+    setData(prev => prev.map(c => c.id === t.id ? { ...c, status: 'archived' as const } : c));
     setArchiveTarget(null);
   }, [archiveTarget]);
 
   const handleBulkArchive = useCallback(() => {
     const selectedIds = Object.keys(rowSelection).map(idx => data[+idx]?.id).filter(Boolean);
-    setData(prev => prev.map(c => selectedIds.includes(c.id) ? { ...c, status: 'inactive' as const } : c));
+    setData(prev => prev.map(c => selectedIds.includes(c.id) ? { ...c, status: 'archived' as const } : c));
     setRowSelection({});
   }, [rowSelection, data]);
 
@@ -344,7 +344,7 @@ export default function DirectMailList({ initialTab = 'direct-mail' }: { initial
         <p className="text-body-md text-text-secondary mb-1">
           Are you sure you want to archive <span className="font-medium text-text-primary">{archiveTarget?.name}</span>?
         </p>
-        <p className="text-body-sm text-text-secondary mb-6">The campaign will be moved to inactive status.</p>
+        <p className="text-body-sm text-text-secondary mb-6">The campaign will be moved to archived status.</p>
         <div className="flex justify-end gap-2">
           <Button variant="secondary" size="sm" onClick={() => setArchiveTarget(null)}>
             Cancel

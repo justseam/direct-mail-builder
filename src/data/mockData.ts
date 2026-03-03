@@ -1,21 +1,21 @@
 import type { Campaign, AudienceList, PaperSize, PaperStock, EnvelopeStock } from '../types';
 
 export const campaigns: Campaign[] = [
-  { id: '1', name: 'Summer Sale Postcard', status: 'active', postageType: 'First Class', audience: 'VIP Customers', postageCost: 1250.00, printingCost: 875.00, createdAt: '2026-01-15' },
+  { id: '1', name: 'Summer Sale Postcard', status: 'launching', postageType: 'First Class', audience: 'VIP Customers', postageCost: 1250.00, printingCost: 875.00, createdAt: '2026-01-15' },
   { id: '2', name: 'Holiday Greeting Letter', status: 'completed', postageType: 'Marketing', audience: 'All Members', postageCost: 3420.00, printingCost: 2150.00, createdAt: '2025-12-01' },
-  { id: '3', name: 'New Account Welcome Kit', status: 'active', postageType: 'First Class', audience: 'New Accounts Q1', postageCost: 890.00, printingCost: 645.00, createdAt: '2026-02-01' },
+  { id: '3', name: 'New Account Welcome Kit', status: 'launching', postageType: 'First Class', audience: 'New Accounts Q1', postageCost: 890.00, printingCost: 645.00, createdAt: '2026-02-01' },
   { id: '4', name: 'Product Launch Announcement', status: 'draft', postageType: 'Marketing', audience: 'Prospect List A', postageCost: 0, printingCost: 0, createdAt: '2026-02-20' },
-  { id: '5', name: 'Annual Statement Insert', status: 'scheduled', postageType: 'First Class', audience: 'All Members', postageCost: 5200.00, printingCost: 3800.00, createdAt: '2026-02-10' },
-  { id: '6', name: 'Referral Program Mailer', status: 'running', postageType: 'Marketing', audience: 'Active Referrers', postageCost: 2100.00, printingCost: 1450.00, createdAt: '2026-01-28' },
+  { id: '5', name: 'Annual Statement Insert', status: 'launching', postageType: 'First Class', audience: 'All Members', postageCost: 5200.00, printingCost: 3800.00, createdAt: '2026-02-10' },
+  { id: '6', name: 'Referral Program Mailer', status: 'completed', postageType: 'Marketing', audience: 'Active Referrers', postageCost: 2100.00, printingCost: 1450.00, createdAt: '2026-01-28' },
   { id: '7', name: 'Branch Opening Invite', status: 'draft', postageType: 'First Class', audience: 'Local Residents', postageCost: 0, printingCost: 0, createdAt: '2026-02-25' },
   { id: '8', name: 'Rate Change Notification', status: 'completed', postageType: 'First Class', audience: 'Loan Holders', postageCost: 4100.00, printingCost: 2900.00, createdAt: '2025-11-15' },
-  { id: '9', name: 'Spring Campaign Postcard', status: 'active', postageType: 'Marketing', audience: 'Dormant Accounts', postageCost: 1800.00, printingCost: 1200.00, createdAt: '2026-02-14' },
-  { id: '10', name: 'Membership Renewal Notice', status: 'scheduled', postageType: 'First Class', audience: 'Expiring Members', postageCost: 3350.00, printingCost: 2400.00, createdAt: '2026-02-18' },
+  { id: '9', name: 'Spring Campaign Postcard', status: 'launching', postageType: 'Marketing', audience: 'Dormant Accounts', postageCost: 1800.00, printingCost: 1200.00, createdAt: '2026-02-14' },
+  { id: '10', name: 'Membership Renewal Notice', status: 'draft', postageType: 'First Class', audience: 'Expiring Members', postageCost: 3350.00, printingCost: 2400.00, createdAt: '2026-02-18' },
   { id: '11', name: 'Event Invitation - Gala', status: 'draft', postageType: 'First Class', audience: 'Top Tier Members', postageCost: 0, printingCost: 0, createdAt: '2026-02-22' },
-  { id: '12', name: 'Cross-Sell Auto Loans', status: 'active', postageType: 'Marketing', audience: 'Checking Only', postageCost: 2750.00, printingCost: 1900.00, createdAt: '2026-01-05' },
+  { id: '12', name: 'Cross-Sell Auto Loans', status: 'completed', postageType: 'Marketing', audience: 'Checking Only', postageCost: 2750.00, printingCost: 1900.00, createdAt: '2026-01-05' },
   { id: '13', name: 'Fraud Alert Reminder', status: 'completed', postageType: 'First Class', audience: 'All Members', postageCost: 6100.00, printingCost: 4200.00, createdAt: '2025-10-20' },
-  { id: '14', name: 'Mobile App Promo', status: 'running', postageType: 'Marketing', audience: 'Non-Digital Users', postageCost: 1650.00, printingCost: 1100.00, createdAt: '2026-02-05' },
-  { id: '15', name: 'Year-End Tax Docs', status: 'inactive', postageType: 'First Class', audience: 'Investment Accts', postageCost: 3900.00, printingCost: 2800.00, createdAt: '2025-12-15' },
+  { id: '14', name: 'Mobile App Promo', status: 'launching', postageType: 'Marketing', audience: 'Non-Digital Users', postageCost: 1650.00, printingCost: 1100.00, createdAt: '2026-02-05' },
+  { id: '15', name: 'Year-End Tax Docs', status: 'archived', postageType: 'First Class', audience: 'Investment Accts', postageCost: 3900.00, printingCost: 2800.00, createdAt: '2025-12-15' },
 ];
 
 export const audienceLists: AudienceList[] = [

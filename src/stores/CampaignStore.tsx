@@ -66,7 +66,7 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
     const newCampaign: Campaign = {
       id: `campaign-${Date.now()}`,
       name: draft.name,
-      status: 'active',
+      status: 'launching',
       postageType: draft.postageType === 'first-class' ? 'First Class' : 'Marketing',
       audience: audience?.name || 'Unknown',
       postageCost: audienceCount * 0.55,

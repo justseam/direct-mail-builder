@@ -3,12 +3,10 @@ import type { CampaignStatus } from '../../types';
 import { cn } from '../../utils';
 
 const dotColors: Record<CampaignStatus, string> = {
-  active: 'bg-status-active',
   draft: 'bg-status-draft',
-  inactive: 'bg-status-inactive',
-  scheduled: 'bg-status-scheduled',
-  running: 'bg-status-running',
+  launching: 'bg-status-active',
   completed: 'bg-status-completed',
+  archived: 'bg-status-inactive',
 };
 
 export default function StatusDot({ status }: { status: CampaignStatus }) {
