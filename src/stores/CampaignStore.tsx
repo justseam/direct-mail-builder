@@ -15,6 +15,7 @@ const defaultDraft: CampaignDraft = {
   formatType: 'simplex',
   paperSizeId: null,
   postageType: 'first-class',
+  returnAddress: '',
   paperStockId: null,
   envelopeStockId: null,
   pages: [defaultPage],
@@ -31,6 +32,7 @@ interface CampaignStoreValue {
   setFormatType: (type: FormatType) => void;
   setPaperSize: (id: string) => void;
   setPostageType: (type: PostageType) => void;
+  setReturnAddress: (addr: string) => void;
   setPaperStock: (id: string) => void;
   setEnvelopeStock: (id: string) => void;
   addPage: () => void;
@@ -65,6 +67,7 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
   const setFormatType = (type: FormatType) => setDraft(d => ({ ...d, formatType: type }));
   const setPaperSize = (id: string) => setDraft(d => ({ ...d, paperSizeId: id }));
   const setPostageType = (type: PostageType) => setDraft(d => ({ ...d, postageType: type }));
+  const setReturnAddress = (addr: string) => setDraft(d => ({ ...d, returnAddress: addr }));
   const setPaperStock = (id: string) => setDraft(d => ({ ...d, paperStockId: id }));
   const setEnvelopeStock = (id: string) => setDraft(d => ({ ...d, envelopeStockId: id }));
 
@@ -133,7 +136,7 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
     <CampaignContext.Provider value={{
       draft, audiences, addAudienceList,
       setName, setAudience, setFormatType, setPaperSize,
-      setPostageType, setPaperStock, setEnvelopeStock,
+      setPostageType, setReturnAddress, setPaperStock, setEnvelopeStock,
       addPage, removePage, addElement, updateElement, removeElement,
       loadDraft, resetDraft, undo, canUndo: undoStack.current.length > 0,
     }}>

@@ -79,6 +79,7 @@ export interface CampaignDraft {
   formatType: FormatType;
   paperSizeId: string | null;
   postageType: PostageType;
+  returnAddress: string;
   paperStockId: string | null;
   envelopeStockId: string | null;
   pages: CanvasPage[];

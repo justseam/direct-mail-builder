@@ -1,22 +1,30 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { useCampaign } from '../../stores/CampaignStore';
-import { paperSizes, paperStocks, envelopeStocks, audienceLists } from '../../data/mockData';
+import { paperSizes, paperStocks, envelopeStocks, getPageDimensions } from '../../data/mockData';
 import { formatCurrency, formatNumber } from '../../utils';
+import CanvasPage from '../canvas/CanvasPage';
 
 export default function StepSummary() {
-  const { draft } = useCampaign();
+  const { draft, audiences } = useCampaign();
   const [previewPage, setPreviewPage] = useState(0);
 
-  const audience = audienceLists.find(a => a.id === draft.audienceId);
+  const audience = audiences.find(a => a.id === draft.audienceId);
   const paperSize = paperSizes.find(p => p.id === draft.paperSizeId);
   const paper = paperStocks.find(p => p.id === draft.paperStockId);
   const envelope = envelopeStocks.find(e => e.id === draft.envelopeStockId);
   const audienceCount = audience?.audienceCount || 0;
 
+  const { width: pageW, height: pageH } = getPageDimensions(draft.paperSizeId);
+  const envelopeType = paperSize?.envelope || 'House 10';
+
+  // Scale the page preview to fit within 400px wide
+  const previewScale = 380 / pageW;
+  const previewHeight = pageH * previewScale;
+
   const summaryItems = [
     { label: 'Internal Name', value: draft.name },
-    { label: 'Return Address', value: '123 Main St, Springfield, IL 62704' },
+    { label: 'Return Address', value: draft.returnAddress || 'Not set' },
     { label: 'Format Type', value: draft.formatType.toUpperCase() },
     { label: 'Paper Size', value: paperSize ? `${paperSize.name} (${paperSize.width} x ${paperSize.height})` : 'Not selected' },
     { label: 'Postage Type', value: draft.postageType === 'first-class' ? 'First Class' : 'Marketing Rate' },
@@ -54,43 +62,37 @@ export default function StepSummary() {
         </div>
       </div>
 
-      {/* Right: Preview */}
-      <div className="w-1/2 p-8 bg-canvas-bg flex flex-col items-center">
+      {/* Right: Preview — actual rendered pages */}
+      <div className="w-1/2 p-8 bg-canvas-bg flex flex-col items-center overflow-y-auto">
         <h3 className="text-title-md font-medium text-text-primary mb-4">Mail Piece Preview</h3>
 
-        <div className="flex-1 flex items-center justify-center w-full">
-          <div className="relative">
-            {/* Preview card */}
-            <div className="w-[400px] h-[520px] bg-white rounded-[8px] shadow-lg border border-border flex items-center justify-center">
-              {draft.pages[previewPage] ? (
-                <div className="text-center p-6">
-                  <p className="text-body-md text-text-secondary mb-2">
-                    {draft.pages[previewPage].label}
-                  </p>
-                  <p className="text-body-sm text-text-secondary">
-                    {draft.pages[previewPage].elements.length} element{draft.pages[previewPage].elements.length !== 1 ? 's' : ''}
-                  </p>
-                  {/* Miniature representation */}
-                  <div className="mt-4 w-full h-64 bg-gray-50 rounded border border-border relative overflow-hidden">
-                    {draft.pages[previewPage].elements.map(el => (
-                      <div
-                        key={el.id}
-                        className="absolute bg-primary/10 border border-primary/20 rounded-sm"
-                        style={{
-                          left: `${(el.x / 816) * 100}%`,
-                          top: `${(el.y / 1056) * 100}%`,
-                          width: `${(el.width / 816) * 100}%`,
-                          height: `${(el.height / 1056) * 100}%`,
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <p className="text-body-md text-text-secondary">No pages</p>
-              )}
+        <div className="flex-1 flex items-start justify-center w-full">
+          {draft.pages[previewPage] ? (
+            <div
+              className="shadow-lg border border-border rounded-[4px] overflow-hidden origin-top-left"
+              style={{ width: pageW * previewScale, height: previewHeight }}
+            >
+              <div style={{ transform: `scale(${previewScale})`, transformOrigin: 'top left', width: pageW, height: pageH }}>
+                <CanvasPage
+                  page={draft.pages[previewPage]}
+                  pageWidth={pageW}
+                  pageHeight={pageH}
+                  isFirstPage={previewPage === 0}
+                  envelopeType={envelopeType}
+                  zoom={100}
+                  showFoldLines={false}
+                  showPostage={true}
+                  selectedElementId={null}
+                  editingElementId={null}
+                  onSelectElement={() => {}}
+                  onStartEdit={() => {}}
+                  onStopEdit={() => {}}
+                />
+              </div>
             </div>
-          </div>
+          ) : (
+            <p className="text-body-md text-text-secondary">No pages</p>
+          )}
         </div>
 
         {/* Page nav */}
@@ -104,7 +106,7 @@ export default function StepSummary() {
               <ChevronLeft className="w-5 h-5 text-text-secondary" />
             </button>
             <span className="text-body-sm text-text-secondary">
-              {previewPage + 1} of {draft.pages.length}
+              Page {previewPage + 1} of {draft.pages.length}
             </span>
             <button
               onClick={() => setPreviewPage(p => Math.min(draft.pages.length - 1, p + 1))}

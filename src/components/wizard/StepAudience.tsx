@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Upload, ListPlus, Check, CheckCircle2, Download, AlertTriangle, XCircle, Loader2 } from 'lucide-react';
 import Button from '../ui/Button';
 import Dialog from '../ui/Dialog';
@@ -30,9 +30,11 @@ export default function StepAudience() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadDone, setUploadDone] = useState(false);
 
-  const errorRows = [2, 4];
-  const totalRecords = sampleCSVData.length;
-  const successRecords = totalRecords - errorRows.length;
+  // Realistic record counts — sampleCSVData is just a preview of the first 5 rows
+  const totalRecords = 3247;
+  const errorCount = 12;
+  const successRecords = totalRecords - errorCount;
+  const previewErrorRows = [2, 4]; // rows with errors in the preview sample
 
   const simulateUpload = useCallback(() => {
     setFileName('audience_list_export.csv');
@@ -60,11 +62,19 @@ export default function StepAudience() {
   }, []);
 
   // Simulate upload progress when entering the status step
+  const uploadStarted = useRef(false);
   useEffect(() => {
-    if (!uploadDialogOpen || uploadStep !== 3) return;
+    if (!uploadDialogOpen || uploadStep !== 3) {
+      uploadStarted.current = false;
+      return;
+    }
+    if (uploadStarted.current) return;
+    uploadStarted.current = true;
+
     setUploadProgress(0);
     setUploadDone(false);
 
+    const nameCopy = listName || 'Imported Audience';
     let progress = 0;
     const interval = setInterval(() => {
       progress += Math.random() * 18 + 8;
@@ -73,11 +83,10 @@ export default function StepAudience() {
         clearInterval(interval);
         setTimeout(() => {
           setUploadDone(true);
-          // Add the list to session audiences and select it
           const newId = `uploaded-${Date.now()}`;
           addAudienceList({
             id: newId,
-            name: listName || 'Imported Audience',
+            name: nameCopy,
             audienceCount: successRecords,
             createdOn: new Date().toISOString().split('T')[0],
             activeCampaigns: 0,
@@ -89,7 +98,7 @@ export default function StepAudience() {
     }, 300);
 
     return () => clearInterval(interval);
-  }, [uploadDialogOpen, uploadStep, listName, successRecords, addAudienceList, setAudience]);
+  }, [uploadDialogOpen, uploadStep]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleUploadNext = () => {
     if (uploadStep === 0 && !fileName) {
@@ -310,7 +319,7 @@ export default function StepAudience() {
                 <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
                 <div>
                   <p className="text-body-md font-medium text-amber-800">
-                    {errorRows.length} records have errors
+                    {errorCount} records have errors
                   </p>
                   <p className="text-body-sm text-amber-700">
                     These records will be skipped during import. Review the highlighted rows below.
@@ -332,7 +341,7 @@ export default function StepAudience() {
                   </thead>
                   <tbody>
                     {sampleCSVData.map((row, i) => {
-                      const hasError = errorRows.includes(i);
+                      const hasError = previewErrorRows.includes(i);
                       return (
                         <tr
                           key={i}
@@ -403,26 +412,19 @@ export default function StepAudience() {
                     </div>
                     <div className="flex-1 bg-red-50 border border-red-200 rounded-[12px] p-4">
                       <XCircle className="w-6 h-6 text-red-500 mx-auto mb-2" />
-                      <p className="text-2xl font-bold text-red-600">{errorRows.length}</p>
+                      <p className="text-2xl font-bold text-red-600">{errorCount}</p>
                       <p className="text-body-sm text-red-500 font-medium">Failed</p>
                     </div>
                   </div>
 
-                  {errorRows.length > 0 && (
+                  {errorCount > 0 && (
                     <div className="max-w-md mx-auto text-left bg-amber-50 border border-amber-200 rounded-[12px] p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
                         <p className="text-body-sm font-medium text-amber-800">
-                          {errorRows.length} records skipped due to errors
+                          {errorCount} records skipped due to missing required fields
                         </p>
                       </div>
-                      <ul className="text-body-sm text-amber-700 space-y-1 ml-6 list-disc">
-                        {errorRows.map(row => (
-                          <li key={row}>
-                            Row {row + 1}: Missing required field (CITY)
-                          </li>
-                        ))}
-                      </ul>
                     </div>
                   )}
                 </>

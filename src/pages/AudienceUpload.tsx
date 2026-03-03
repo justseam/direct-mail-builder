@@ -27,9 +27,10 @@ export default function AudienceUpload() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadDone, setUploadDone] = useState(false);
 
-  const errorRows = [2, 4]; // simulate errors on rows 2 and 4
-  const totalRecords = sampleCSVData.length;
-  const successRecords = totalRecords - errorRows.length;
+  const previewErrorRows = [2, 4]; // rows with errors in preview sample
+  const totalRecords = 3247;
+  const errorCount = 12;
+  const successRecords = totalRecords - errorCount;
 
   const simulateUpload = useCallback(() => {
     setFileName('audience_list_export.csv');
@@ -193,7 +194,7 @@ export default function AudienceUpload() {
               <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
               <div>
                 <p className="text-body-md font-medium text-amber-800">
-                  {errorRows.length} records have errors
+                  {errorCount} records have errors
                 </p>
                 <p className="text-body-sm text-amber-700">
                   These records will be skipped during import. Review the highlighted rows below.
@@ -215,7 +216,7 @@ export default function AudienceUpload() {
                 </thead>
                 <tbody>
                   {sampleCSVData.map((row, i) => {
-                    const hasError = errorRows.includes(i);
+                    const hasError = previewErrorRows.includes(i);
                     return (
                       <tr
                         key={i}
@@ -288,27 +289,20 @@ export default function AudienceUpload() {
                   </div>
                   <div className="flex-1 bg-red-50 border border-red-200 rounded-[12px] p-5">
                     <XCircle className="w-6 h-6 text-red-500 mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-red-600">{errorRows.length}</p>
+                    <p className="text-2xl font-bold text-red-600">{errorCount}</p>
                     <p className="text-body-sm text-red-500 font-medium">Failed</p>
                   </div>
                 </div>
 
                 {/* Error details */}
-                {errorRows.length > 0 && (
+                {errorCount > 0 && (
                   <div className="max-w-md mx-auto text-left bg-amber-50 border border-amber-200 rounded-[12px] p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
                       <p className="text-body-sm font-medium text-amber-800">
-                        {errorRows.length} records skipped due to errors
+                        {errorCount} records skipped due to missing required fields
                       </p>
                     </div>
-                    <ul className="text-body-sm text-amber-700 space-y-1 ml-6 list-disc">
-                      {errorRows.map(row => (
-                        <li key={row}>
-                          Row {row + 1}: Missing required field (CITY)
-                        </li>
-                      ))}
-                    </ul>
                   </div>
                 )}
               </>

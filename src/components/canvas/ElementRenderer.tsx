@@ -1,4 +1,4 @@
-import { useCallback, useRef, useMemo, useEffect } from 'react';
+import { useCallback, useRef, useMemo, useEffect, useState } from 'react';
 import {
   Type, ImageIcon,
   QrCode, Minus, Table, Braces,
@@ -26,6 +26,66 @@ const iconMap: Record<string, typeof Type> = {
   table: Table,
   variable: Braces,
 };
+
+/** Interactive table sub-component with add row/column handles */
+function TableElement({ element, pageId }: { element: CanvasElement; pageId: string }) {
+  const { updateElement } = useCampaign();
+  // Store grid dimensions in content as "rows,cols" — default 3x3
+  const parsed = (element.content || '3,3').split(',').map(Number);
+  const [rows, setRows] = useState(parsed[0] || 3);
+  const [cols, setCols] = useState(parsed[1] || 3);
+
+  const addRow = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const next = rows + 1;
+    setRows(next);
+    updateElement(pageId, element.id, { content: `${next},${cols}` });
+  };
+  const addCol = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const next = cols + 1;
+    setCols(next);
+    updateElement(pageId, element.id, { content: `${rows},${next}` });
+  };
+
+  return (
+    <div className="w-full h-full flex flex-col relative" onMouseDown={e => e.stopPropagation()}>
+      <div className="flex-1 overflow-hidden">
+        <table className="w-full h-full border-collapse">
+          <tbody>
+            {Array.from({ length: rows }, (_, r) => (
+              <tr key={r}>
+                {Array.from({ length: cols }, (_, c) => (
+                  <td
+                    key={c}
+                    className="border border-gray-300 text-[10px] text-gray-500 text-center p-1"
+                    contentEditable
+                    suppressContentEditableWarning
+                    onMouseDown={e => e.stopPropagation()}
+                  >
+                    {r === 0 ? `Col ${c + 1}` : ''}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {/* Add row handle */}
+      <button
+        onClick={addRow}
+        className="absolute -bottom-5 left-1/2 -translate-x-1/2 w-6 h-5 bg-primary text-white rounded-b text-[11px] font-bold flex items-center justify-center cursor-pointer hover:bg-primary/80 z-10"
+        title="Add row"
+      >+</button>
+      {/* Add col handle */}
+      <button
+        onClick={addCol}
+        className="absolute -right-5 top-1/2 -translate-y-1/2 w-5 h-6 bg-primary text-white rounded-r text-[11px] font-bold flex items-center justify-center cursor-pointer hover:bg-primary/80 z-10"
+        title="Add column"
+      >+</button>
+    </div>
+  );
+}
 
 export default function ElementRenderer({ element, pageId, zoom, selected, editing, onSelect, onStartEdit, onStopEdit }: ElementRendererProps) {
   const { updateElement } = useCampaign();
@@ -250,7 +310,10 @@ export default function ElementRenderer({ element, pageId, zoom, selected, editi
             <span className="text-body-sm text-amber-700 font-medium truncate">{element.content || 'variable'}</span>
           </div>
         )}
-        {!['text', 'image', 'qrcode', 'divider', 'variable'].includes(element.type) && (
+        {element.type === 'table' && (
+          <TableElement element={element} pageId={pageId} />
+        )}
+        {!['text', 'image', 'qrcode', 'divider', 'variable', 'table'].includes(element.type) && (
           <div className="w-full h-full bg-gray-50 border border-dashed border-gray-300 flex flex-col items-center justify-center">
             <Icon className="w-6 h-6 text-gray-400" />
             <span className="text-[11px] text-gray-400 mt-1 capitalize">{element.type}</span>

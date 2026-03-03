@@ -17,7 +17,7 @@ export function getElementDefaults(type: ElementType, _pageWidth?: number): Pick
     case 'image': return { width: 200, height: 150, content: '' };
     case 'qrcode': return { width: 100, height: 100, content: 'https://example.com' };
     case 'divider': return { width: 300, height: 2, content: '' };
-    case 'table': return { width: 300, height: 150, content: '' };
+    case 'table': return { width: 300, height: 150, content: '3,3' };
     case 'variable': return { width: 180, height: 32, content: 'first_name' };
     default: return { width: 200, height: 100, content: '' };
   }
@@ -197,8 +197,8 @@ export default function CanvasEditor() {
         </div>
       </div>
 
-      {/* Right Sidebar — Properties (overlay on mobile, inline on desktop) */}
-      {selectedElement && (
+      {/* Right Sidebar — Properties (only for image and QR code elements) */}
+      {selectedElement && (selectedElement.type === 'image' || selectedElement.type === 'qrcode') && (
         <div className="absolute right-0 top-0 bottom-0 z-20 md:relative md:z-auto">
           <PropertiesPanel
             element={selectedElement}

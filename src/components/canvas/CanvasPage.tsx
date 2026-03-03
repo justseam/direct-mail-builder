@@ -70,32 +70,6 @@ export default function CanvasPage({
         </div>
       )}
 
-      {/* Envelope windows — only on Page 1 for House 10 double window */}
-      {showPostage && isFirstPage && envelopeType === 'House 10' && (
-        <>
-          {/* Return address window — upper left */}
-          <div
-            className="absolute border-2 border-dashed border-blue-300 bg-blue-50/30 flex flex-col items-center justify-center pointer-events-none"
-            style={{ top: MARGIN + 20, left: MARGIN + 30, width: 260, height: 70 }}
-          >
-            <span className="text-[10px] text-blue-400 font-medium uppercase mb-1">Return Address Window</span>
-            <div className="w-36 h-2.5 bg-blue-200/40 rounded-sm mb-1" />
-            <div className="w-28 h-2.5 bg-blue-200/40 rounded-sm" />
-          </div>
-
-          {/* Recipient address window — below return address */}
-          <div
-            className="absolute border-2 border-dashed border-blue-300 bg-blue-50/30 flex flex-col items-center justify-center pointer-events-none"
-            style={{ top: MARGIN + 110, left: MARGIN + 30, width: 300, height: 100 }}
-          >
-            <span className="text-[10px] text-blue-400 font-medium uppercase mb-1">Address Window</span>
-            <div className="w-44 h-2.5 bg-blue-200/40 rounded-sm mb-1" />
-            <div className="w-36 h-2.5 bg-blue-200/40 rounded-sm mb-1" />
-            <div className="w-40 h-2.5 bg-blue-200/40 rounded-sm" />
-          </div>
-        </>
-      )}
-
       {/* Elements */}
       {page.elements.map(element => (
         <ElementRenderer
@@ -110,6 +84,32 @@ export default function CanvasPage({
           onStopEdit={onStopEdit}
         />
       ))}
+
+      {/* Envelope windows — rendered ABOVE elements so content stays behind address zones */}
+      {showPostage && isFirstPage && envelopeType === 'House 10' && (
+        <>
+          {/* Return address window — upper left */}
+          <div
+            className="absolute border-2 border-blue-300 bg-white flex flex-col items-center justify-center pointer-events-none z-30"
+            style={{ top: MARGIN + 20, left: MARGIN + 30, width: 260, height: 70 }}
+          >
+            <span className="text-[10px] text-blue-400 font-medium uppercase mb-1">Return Address Window</span>
+            <div className="w-36 h-2.5 bg-blue-200/60 rounded-sm mb-1" />
+            <div className="w-28 h-2.5 bg-blue-200/60 rounded-sm" />
+          </div>
+
+          {/* Recipient address window — below return address */}
+          <div
+            className="absolute border-2 border-blue-300 bg-white flex flex-col items-center justify-center pointer-events-none z-30"
+            style={{ top: MARGIN + 110, left: MARGIN + 30, width: 300, height: 100 }}
+          >
+            <span className="text-[10px] text-blue-400 font-medium uppercase mb-1">Address Window</span>
+            <div className="w-44 h-2.5 bg-blue-200/60 rounded-sm mb-1" />
+            <div className="w-36 h-2.5 bg-blue-200/60 rounded-sm mb-1" />
+            <div className="w-40 h-2.5 bg-blue-200/60 rounded-sm" />
+          </div>
+        </>
+      )}
     </div>
   );
 }

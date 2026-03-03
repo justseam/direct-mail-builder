@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { Check, Info, ChevronLeft, ChevronRight } from 'lucide-react';
 import SegmentedButton from '../ui/SegmentedButton';
+import Input from '../ui/Input';
 import { useCampaign } from '../../stores/CampaignStore';
 import { paperStocks, envelopeStocks } from '../../data/mockData';
 import { cn } from '../../utils';
@@ -75,7 +76,7 @@ function EnvelopeIllustration({ stockId }: { stockId: string }) {
 }
 
 export default function StepMailOptions() {
-  const { draft, setPostageType, setPaperStock, setEnvelopeStock } = useCampaign();
+  const { draft, setPostageType, setReturnAddress, setPaperStock, setEnvelopeStock } = useCampaign();
   const envScrollRef = useRef<HTMLDivElement>(null);
 
   const scrollEnv = (dir: number) => {
@@ -84,17 +85,30 @@ export default function StepMailOptions() {
 
   return (
     <div className="max-w-5xl mx-auto py-6 sm:py-10 px-4 sm:px-6">
-      {/* Postage Type */}
-      <div className="mb-10">
-        <h3 className="text-title-md font-medium text-text-primary mb-4">Postage Type</h3>
-        <SegmentedButton
-          options={[
-            { value: 'first-class', label: 'First Class' },
-            { value: 'marketing', label: 'Marketing Postage Rate' },
-          ]}
-          value={draft.postageType}
-          onChange={v => setPostageType(v as 'first-class' | 'marketing')}
-        />
+      {/* Postage Type + Return Address row */}
+      <div className="mb-10 flex flex-col sm:flex-row gap-6 sm:gap-10">
+        <div>
+          <h3 className="text-title-md font-medium text-text-primary mb-4">Postage Type</h3>
+          <SegmentedButton
+            options={[
+              { value: 'first-class', label: 'First Class' },
+              { value: 'marketing', label: 'Marketing Postage Rate' },
+            ]}
+            value={draft.postageType}
+            onChange={v => setPostageType(v as 'first-class' | 'marketing')}
+          />
+        </div>
+        <div className="flex-1">
+          <h3 className="text-title-md font-medium text-text-primary mb-4">
+            Return Address <span className="text-red-500">*</span>
+          </h3>
+          <Input
+            placeholder="123 Main St, Springfield, IL 62704"
+            value={draft.returnAddress}
+            onChange={e => setReturnAddress(e.target.value)}
+            className="w-full"
+          />
+        </div>
       </div>
 
       {/* Paper Stock */}

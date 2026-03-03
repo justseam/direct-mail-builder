@@ -8,6 +8,8 @@ interface WizardShellProps {
   onTitleChange?: (title: string) => void;
   steps: string[];
   currentStep: number;
+  highestStep?: number;
+  onStepClick?: (step: number) => void;
   onBack: () => void;
   onNext: () => void;
   onClose: () => void;
@@ -25,6 +27,8 @@ export default function WizardShell({
   onTitleChange,
   steps,
   currentStep,
+  highestStep,
+  onStepClick,
   onBack,
   onNext,
   onClose,
@@ -36,6 +40,7 @@ export default function WizardShell({
   backDisabled,
   children,
 }: WizardShellProps) {
+  const maxReached = highestStep ?? currentStep;
   const isLast = currentStep === steps.length - 1;
 
   return (
@@ -79,21 +84,30 @@ export default function WizardShell({
 
         {/* Row 2: Breadcrumb step nav */}
         <nav className="px-4 sm:px-6 pb-2.5 flex items-center gap-1 overflow-x-auto">
-          {steps.map((step, i) => (
-            <div key={step} className="flex items-center shrink-0">
-              {i > 0 && <ChevronRight className="w-3.5 h-3.5 mx-1 text-gray-300" />}
-              <span
-                className={cn(
-                  'text-body-sm px-2.5 py-0.5 rounded-full transition-colors',
-                  i === currentStep && 'border border-primary text-primary font-semibold bg-primary/5',
-                  i < currentStep && 'text-text-secondary',
-                  i > currentStep && 'text-text-secondary/60',
-                )}
-              >
-                {step}
-              </span>
-            </div>
-          ))}
+          {steps.map((step, i) => {
+            const canClick = onStepClick && i <= maxReached && i !== currentStep;
+            return (
+              <div key={step} className="flex items-center shrink-0">
+                {i > 0 && <ChevronRight className="w-3.5 h-3.5 mx-1 text-gray-300" />}
+                <span
+                  role={canClick ? 'button' : undefined}
+                  tabIndex={canClick ? 0 : undefined}
+                  onClick={canClick ? () => onStepClick(i) : undefined}
+                  onKeyDown={canClick ? (e) => { if (e.key === 'Enter') onStepClick(i); } : undefined}
+                  className={cn(
+                    'text-body-sm px-2.5 py-0.5 rounded-full transition-colors',
+                    i === currentStep && 'border border-primary text-primary font-semibold bg-primary/5',
+                    i < currentStep && 'text-text-secondary',
+                    i > currentStep && i <= maxReached && 'text-text-secondary',
+                    i > maxReached && 'text-text-secondary/60',
+                    canClick && 'cursor-pointer hover:bg-gray-100',
+                  )}
+                >
+                  {step}
+                </span>
+              </div>
+            );
+          })}
         </nav>
       </div>
 

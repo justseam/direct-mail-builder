@@ -117,6 +117,7 @@ export default function CreateDirectMail() {
 
   // When editing an existing campaign, pre-populate the draft and jump to Design
   const [step, setStep] = useState(0);
+  const [highestStep, setHighestStep] = useState(0);
 
   useEffect(() => {
     if (initialized.current) return;
@@ -138,6 +139,7 @@ export default function CreateDirectMail() {
         formatType: 'simplex',
         paperSizeId,
         postageType: campaign.postageType === 'Marketing' ? 'marketing' : 'first-class',
+        returnAddress: '123 Main St, Springfield, IL 62704',
         paperStockId: 'stock-20-85x11',
         envelopeStockId: 'house-10-dw',
         pages: [
@@ -151,6 +153,7 @@ export default function CreateDirectMail() {
 
       loadDraft(editDraft);
       setStep(3); // Jump directly to Design step
+      setHighestStep(4);
     } else {
       resetDraft();
     }
@@ -159,6 +162,17 @@ export default function CreateDirectMail() {
   const audienceCount = draft.audienceId
     ? audiences.find(a => a.id === draft.audienceId)?.audienceCount || 0
     : 0;
+
+  // Step validation — disable Next when required selections are missing
+  const isStepComplete = (s: number) => {
+    switch (s) {
+      case 0: return !!draft.audienceId;
+      case 1: return !!draft.paperSizeId;
+      case 2: return !!draft.paperStockId && !!draft.envelopeStockId && draft.returnAddress.trim().length > 0;
+      default: return true;
+    }
+  };
+  const nextDisabled = !isStepComplete(step);
 
   const statsBar = (
     <div className="flex items-center gap-4 text-[12px] shrink-0">
@@ -194,16 +208,24 @@ export default function CreateDirectMail() {
       onTitleChange={setName}
       steps={steps}
       currentStep={step}
+      highestStep={highestStep}
+      onStepClick={(s) => setStep(s)}
       onBack={() => step > 0 ? setStep(s => s - 1) : navigate('/')}
       onNext={() => {
-        if (step < steps.length - 1) setStep(s => s + 1);
-        else navigate('/');
+        if (step < steps.length - 1) {
+          const next = step + 1;
+          setStep(next);
+          setHighestStep(h => Math.max(h, next));
+        } else {
+          navigate('/');
+        }
       }}
       onClose={() => navigate('/')}
       onSaveDraft={() => navigate('/')}
       showUndo={step === 3}
       statsBar={statsBar}
       nextLabel={step === steps.length - 1 ? 'Launch Campaign' : 'Next'}
+      nextDisabled={nextDisabled}
     >
       {renderStep()}
     </WizardShell>
