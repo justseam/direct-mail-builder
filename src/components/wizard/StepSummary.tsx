@@ -1,13 +1,16 @@
-import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Info } from 'lucide-react';
+import { useState, useRef, useCallback } from 'react';
+import { ChevronLeft, ChevronRight, Info, Download, Loader2 } from 'lucide-react';
 import { useCampaign } from '../../stores/CampaignStore';
 import { paperSizes, paperStocks, envelopeStocks, getPageDimensions } from '../../data/mockData';
 import { formatCurrency, formatNumber } from '../../utils';
 import CanvasPage from '../canvas/CanvasPage';
+import Button from '../ui/Button';
 
 export default function StepSummary() {
   const { draft, audiences } = useCampaign();
   const [previewPage, setPreviewPage] = useState(0);
+  const [exporting, setExporting] = useState(false);
+  const previewContainerRef = useRef<HTMLDivElement>(null);
 
   const audience = audiences.find(a => a.id === draft.audienceId);
   const paperSize = paperSizes.find(p => p.id === draft.paperSizeId);
@@ -21,6 +24,78 @@ export default function StepSummary() {
   // Scale the page preview to fit within 400px wide
   const previewScale = 380 / pageW;
   const previewHeight = pageH * previewScale;
+
+  const handleExportPDF = useCallback(async () => {
+    setExporting(true);
+    try {
+      const html2canvas = (await import('html2canvas-pro')).default;
+      const { jsPDF } = await import('jspdf');
+
+      // Determine page orientation based on dimensions
+      const isLandscape = pageW > pageH;
+      const pdf = new jsPDF({
+        orientation: isLandscape ? 'landscape' : 'portrait',
+        unit: 'px',
+        format: [pageW, pageH],
+      });
+
+      for (let i = 0; i < draft.pages.length; i++) {
+        if (i > 0) pdf.addPage([pageW, pageH], isLandscape ? 'landscape' : 'portrait');
+
+        // Create a temporary container for rendering
+        const container = document.createElement('div');
+        container.style.position = 'absolute';
+        container.style.left = '-9999px';
+        container.style.top = '0';
+        container.style.width = `${pageW}px`;
+        container.style.height = `${pageH}px`;
+        document.body.appendChild(container);
+
+        // Render the page into it using React DOM
+        const { createRoot } = await import('react-dom/client');
+        const root = createRoot(container);
+        await new Promise<void>(resolve => {
+          root.render(
+            <CanvasPage
+              page={draft.pages[i]}
+              pageWidth={pageW}
+              pageHeight={pageH}
+              isFirstPage={i === 0}
+              envelopeType={envelopeType}
+              zoom={100}
+              showFoldLines={false}
+              showPostage={true}
+              selectedElementId={null}
+              editingElementId={null}
+              onSelectElement={() => {}}
+              onStartEdit={() => {}}
+              onStopEdit={() => {}}
+            />
+          );
+          setTimeout(resolve, 200);
+        });
+
+        const canvas = await html2canvas(container, {
+          scale: 2,
+          useCORS: true,
+          width: pageW,
+          height: pageH,
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        pdf.addImage(imgData, 'PNG', 0, 0, pageW, pageH);
+
+        root.unmount();
+        document.body.removeChild(container);
+      }
+
+      pdf.save(`${draft.name || 'campaign'}-preview.pdf`);
+    } catch (err) {
+      console.error('PDF export failed:', err);
+    } finally {
+      setExporting(false);
+    }
+  }, [draft, pageW, pageH, envelopeType]);
 
   const summaryItems = [
     { label: 'Internal Name', value: draft.name },
@@ -64,9 +139,20 @@ export default function StepSummary() {
 
       {/* Right: Preview — actual rendered pages */}
       <div className="w-1/2 p-8 bg-canvas-bg flex flex-col items-center overflow-y-auto">
-        <h3 className="text-title-md font-medium text-text-primary mb-4">Mail Piece Preview</h3>
+        <div className="flex items-center justify-between w-full mb-4">
+          <h3 className="text-title-md font-medium text-text-primary">Mail Piece Preview</h3>
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            onClick={handleExportPDF}
+            disabled={exporting}
+          >
+            {exporting ? 'Exporting...' : 'Export PDF'}
+          </Button>
+        </div>
 
-        <div className="flex-1 flex items-start justify-center w-full">
+        <div ref={previewContainerRef} className="flex-1 flex items-start justify-center w-full">
           {draft.pages[previewPage] ? (
             <div
               className="shadow-lg border border-border rounded-[4px] overflow-hidden origin-top-left"

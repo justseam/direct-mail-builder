@@ -1,6 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import ElementsPalette from './ElementsPalette';
-import PagesPanel from './PagesPanel';
 import CanvasPage from './CanvasPage';
 import PropertiesPanel from './PropertiesPanel';
 import WysiwygToolbar from './WysiwygToolbar';
@@ -9,7 +8,8 @@ import Switch from '../ui/Switch';
 import type { ElementType, CanvasElement } from '../../types';
 import { v4Id } from '../../utils';
 import { getPageDimensions, paperSizes } from '../../data/mockData';
-import { PanelLeftClose, PanelLeftOpen, Minus, Plus, Maximize2 } from 'lucide-react';
+import { PanelLeftClose, PanelLeftOpen, Minus, Plus, Maximize2, FileText, X as XIcon } from 'lucide-react';
+import { cn } from '../../utils';
 
 export function getElementDefaults(type: ElementType, _pageWidth?: number): Pick<CanvasElement, 'width' | 'height' | 'content'> {
   switch (type) {
@@ -24,7 +24,7 @@ export function getElementDefaults(type: ElementType, _pageWidth?: number): Pick
 }
 
 export default function CanvasEditor() {
-  const { draft, addElement, removeElement, undo } = useCampaign();
+  const { draft, addElement, removeElement, addPage, removePage, undo } = useCampaign();
   const [activePageId, setActivePageId] = useState(draft.pages[0]?.id || '');
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [editingElementId, setEditingElementId] = useState<string | null>(null);
@@ -175,12 +175,6 @@ export default function CanvasEditor() {
       {/* Left Sidebar */}
       {leftSidebarOpen && (
         <div className="w-64 bg-white border-r border-border flex flex-col shrink-0 overflow-y-auto">
-          <PagesPanel
-            pages={draft.pages}
-            activePageId={activePageId}
-            onSelectPage={setActivePageId}
-          />
-          <div className="border-t border-border" />
           <ElementsPalette onAdd={handleAddElement} />
           <div className="border-t border-border" />
           {/* View settings */}
@@ -194,6 +188,42 @@ export default function CanvasEditor() {
 
       {/* Canvas area */}
       <div className="flex-1 flex flex-col min-w-0">
+        {/* Page tabs */}
+        <div className="bg-white border-b border-border flex items-center px-2 shrink-0">
+          <div className="flex items-center gap-0.5 overflow-x-auto">
+            {draft.pages.map(page => (
+              <button
+                key={page.id}
+                onClick={() => setActivePageId(page.id)}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-2 text-body-sm font-medium border-b-2 transition-colors cursor-pointer group whitespace-nowrap',
+                  page.id === activePageId
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-text-secondary hover:text-text-primary hover:bg-gray-50',
+                )}
+              >
+                <FileText className="w-3.5 h-3.5 shrink-0" />
+                {page.label}
+                {draft.pages.length > 1 && (
+                  <span
+                    onClick={e => { e.stopPropagation(); removePage(page.id); }}
+                    className="ml-1 p-0.5 rounded opacity-0 group-hover:opacity-100 hover:bg-gray-200 cursor-pointer"
+                  >
+                    <XIcon className="w-3 h-3" />
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={addPage}
+            className="p-1.5 ml-1 hover:bg-gray-100 rounded cursor-pointer text-text-secondary shrink-0"
+            title="Add page"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
+
         {/* Canvas toolbar */}
         <div className="h-10 bg-white border-b border-border flex items-center px-3 gap-1 shrink-0">
           <button

@@ -214,14 +214,12 @@ export default function DirectMailList({ initialTab = 'direct-mail' }: { initial
       <Tabs
         tabs={[
           { value: 'direct-mail', label: 'Direct Mail' },
-          { value: 'templates', label: 'Mail Templates' },
           { value: 'audiences', label: 'Audiences' },
         ]}
         value={tab}
         onChange={(v) => {
           setTab(v);
-          if (v === 'templates') navigate('/templates');
-          else if (v === 'audiences') navigate('/audiences');
+          if (v === 'audiences') navigate('/audiences');
           else navigate('/');
         }}
       />

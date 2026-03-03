@@ -13,6 +13,8 @@
     "@material/web": "^2.4.1",
     "@tailwindcss/vite": "^4.2.1",
     "@tanstack/react-table": "^8.21.3",
+    "html2canvas-pro": "^2.0.2",
+    "jspdf": "^4.2.0",
     "lucide-react": "^0.575.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

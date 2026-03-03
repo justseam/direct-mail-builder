@@ -1,6 +1,6 @@
 import {
   Type, ImageIcon,
-  QrCode, Minus, Table, Braces,
+  QrCode, Minus, Table,
 } from 'lucide-react';
 import type { ElementType } from '../../types';
 
@@ -22,12 +22,6 @@ const categories = [
     label: 'Track',
     items: [
       { type: 'qrcode' as ElementType, label: 'QR Code', icon: QrCode },
-    ],
-  },
-  {
-    label: 'Personalize',
-    items: [
-      { type: 'variable' as ElementType, label: 'Variable', icon: Braces },
     ],
   },
 ];

@@ -30,22 +30,18 @@ const iconMap: Record<string, typeof Type> = {
 /** Interactive table sub-component with add row/column handles */
 function TableElement({ element, pageId }: { element: CanvasElement; pageId: string }) {
   const { updateElement } = useCampaign();
-  // Store grid dimensions in content as "rows,cols" — default 3x3
+  // Derive grid dimensions directly from element.content — default 3x3
   const parsed = (element.content || '3,3').split(',').map(Number);
-  const [rows, setRows] = useState(parsed[0] || 3);
-  const [cols, setCols] = useState(parsed[1] || 3);
+  const rows = parsed[0] || 3;
+  const cols = parsed[1] || 3;
 
   const addRow = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const next = rows + 1;
-    setRows(next);
-    updateElement(pageId, element.id, { content: `${next},${cols}` });
+    updateElement(pageId, element.id, { content: `${rows + 1},${cols}` });
   };
   const addCol = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const next = cols + 1;
-    setCols(next);
-    updateElement(pageId, element.id, { content: `${rows},${next}` });
+    updateElement(pageId, element.id, { content: `${rows},${cols + 1}` });
   };
 
   return (
