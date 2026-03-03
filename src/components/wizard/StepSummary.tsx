@@ -152,6 +152,29 @@ export default function StepSummary() {
           </Button>
         </div>
 
+        {/* Page nav */}
+        {draft.pages.length > 1 && (
+          <div className="flex items-center gap-4 mb-4">
+            <button
+              onClick={() => setPreviewPage(p => Math.max(0, p - 1))}
+              disabled={previewPage === 0}
+              className="p-2 hover:bg-white rounded-full cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-5 h-5 text-text-secondary" />
+            </button>
+            <span className="text-body-sm text-text-secondary">
+              Page {previewPage + 1} of {draft.pages.length}
+            </span>
+            <button
+              onClick={() => setPreviewPage(p => Math.min(draft.pages.length - 1, p + 1))}
+              disabled={previewPage === draft.pages.length - 1}
+              className="p-2 hover:bg-white rounded-full cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <ChevronRight className="w-5 h-5 text-text-secondary" />
+            </button>
+          </div>
+        )}
+
         <div ref={previewContainerRef} className="flex-1 flex items-start justify-center w-full">
           {draft.pages[previewPage] ? (
             <div
@@ -180,29 +203,6 @@ export default function StepSummary() {
             <p className="text-body-md text-text-secondary">No pages</p>
           )}
         </div>
-
-        {/* Page nav */}
-        {draft.pages.length > 1 && (
-          <div className="flex items-center gap-4 mt-4">
-            <button
-              onClick={() => setPreviewPage(p => Math.max(0, p - 1))}
-              disabled={previewPage === 0}
-              className="p-2 hover:bg-white rounded-full cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              <ChevronLeft className="w-5 h-5 text-text-secondary" />
-            </button>
-            <span className="text-body-sm text-text-secondary">
-              Page {previewPage + 1} of {draft.pages.length}
-            </span>
-            <button
-              onClick={() => setPreviewPage(p => Math.min(draft.pages.length - 1, p + 1))}
-              disabled={previewPage === draft.pages.length - 1}
-              className="p-2 hover:bg-white rounded-full cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              <ChevronRight className="w-5 h-5 text-text-secondary" />
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
