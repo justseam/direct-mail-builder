@@ -6,7 +6,7 @@ import {
   createColumnHelper, flexRender,
   type SortingState,
 } from '@tanstack/react-table';
-import { Search, Plus, ArrowUpDown, MoreHorizontal, Pencil, Copy, Archive } from 'lucide-react';
+import { Search, Plus, ArrowUpDown, MoreHorizontal, Eye, Pencil, Copy, Archive, ArchiveRestore } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Tabs from '../components/ui/Tabs';
@@ -18,11 +18,13 @@ import { formatCurrency } from '../utils';
 import type { Campaign } from '../types';
 
 /* ── Row Actions Dropdown ─────────────────────── */
-function RowActions({ campaign, onEdit, onClone, onArchive }: {
+function RowActions({ campaign, onView, onEdit, onClone, onArchive, onUnarchive }: {
   campaign: Campaign;
+  onView: () => void;
   onEdit: () => void;
   onClone: () => void;
   onArchive: () => void;
+  onUnarchive: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -37,6 +39,7 @@ function RowActions({ campaign, onEdit, onClone, onArchive }: {
   }, [open]);
 
   const isDraft = campaign.status === 'draft';
+  const isArchived = campaign.status === 'archived';
 
   return (
     <div ref={ref} className="relative">
@@ -48,6 +51,13 @@ function RowActions({ campaign, onEdit, onClone, onArchive }: {
       </button>
       {open && (
         <div className="absolute right-0 top-8 z-50 bg-white rounded-[8px] border border-border shadow-lg py-1 min-w-[160px]">
+          <button
+            onClick={() => { setOpen(false); onView(); }}
+            className="flex items-center gap-2.5 w-full px-3 py-2 text-body-sm text-text-primary hover:bg-gray-50 cursor-pointer text-left"
+          >
+            <Eye className="w-3.5 h-3.5 text-text-secondary" />
+            View
+          </button>
           {isDraft && (
             <button
               onClick={() => { setOpen(false); onEdit(); }}
@@ -64,13 +74,23 @@ function RowActions({ campaign, onEdit, onClone, onArchive }: {
             <Copy className="w-3.5 h-3.5 text-text-secondary" />
             Clone
           </button>
-          <button
-            onClick={() => { setOpen(false); onArchive(); }}
-            className="flex items-center gap-2.5 w-full px-3 py-2 text-body-sm text-text-primary hover:bg-gray-50 cursor-pointer text-left"
-          >
-            <Archive className="w-3.5 h-3.5 text-text-secondary" />
-            Archive
-          </button>
+          {isArchived ? (
+            <button
+              onClick={() => { setOpen(false); onUnarchive(); }}
+              className="flex items-center gap-2.5 w-full px-3 py-2 text-body-sm text-text-primary hover:bg-gray-50 cursor-pointer text-left"
+            >
+              <ArchiveRestore className="w-3.5 h-3.5 text-text-secondary" />
+              Unarchive
+            </button>
+          ) : (
+            <button
+              onClick={() => { setOpen(false); onArchive(); }}
+              className="flex items-center gap-2.5 w-full px-3 py-2 text-body-sm text-text-primary hover:bg-gray-50 cursor-pointer text-left"
+            >
+              <Archive className="w-3.5 h-3.5 text-text-secondary" />
+              Archive
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -140,6 +160,10 @@ export default function DirectMailList({ initialTab = 'direct-mail' }: { initial
     setData([...campaignList]);
   }, [campaignList]);
 
+  const handleView = useCallback((campaign: Campaign) => {
+    navigate('/campaigns/new', { state: { editId: campaign.id, viewOnly: true } });
+  }, [navigate]);
+
   const handleEdit = useCallback((campaign: Campaign) => {
     navigate('/campaigns/new', { state: { editId: campaign.id } });
   }, [navigate]);
@@ -164,11 +188,21 @@ export default function DirectMailList({ initialTab = 'direct-mail' }: { initial
     setArchiveTarget(null);
   }, [archiveTarget]);
 
+  const handleUnarchive = useCallback((campaign: Campaign) => {
+    setData(prev => prev.map(c => c.id === campaign.id ? { ...c, status: 'draft' as const } : c));
+  }, []);
+
+  // Filter campaigns based on active tab
+  const filteredData = useMemo(() => {
+    if (tab === 'archived') return data.filter(c => c.status === 'archived');
+    return data.filter(c => c.status !== 'archived');
+  }, [data, tab]);
+
   const handleBulkArchive = useCallback(() => {
-    const selectedIds = Object.keys(rowSelection).map(idx => data[+idx]?.id).filter(Boolean);
+    const selectedIds = Object.keys(rowSelection).map(idx => filteredData[+idx]?.id).filter(Boolean);
     setData(prev => prev.map(c => selectedIds.includes(c.id) ? { ...c, status: 'archived' as const } : c));
     setRowSelection({});
-  }, [rowSelection, data]);
+  }, [rowSelection, filteredData]);
 
   const columns = useMemo(() => [
     ...baseColumns,
@@ -178,17 +212,19 @@ export default function DirectMailList({ initialTab = 'direct-mail' }: { initial
       cell: ({ row }) => (
         <RowActions
           campaign={row.original}
+          onView={() => handleView(row.original)}
           onEdit={() => handleEdit(row.original)}
           onClone={() => handleClone(row.original)}
           onArchive={() => setArchiveTarget(row.original)}
+          onUnarchive={() => handleUnarchive(row.original)}
         />
       ),
       size: 50,
     }),
-  ], [handleEdit, handleClone]);
+  ], [handleView, handleEdit, handleClone, handleUnarchive]);
 
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     state: { sorting, globalFilter, rowSelection },
     onSortingChange: setSorting,
@@ -214,11 +250,13 @@ export default function DirectMailList({ initialTab = 'direct-mail' }: { initial
       <Tabs
         tabs={[
           { value: 'direct-mail', label: 'Direct Mail' },
+          { value: 'archived', label: 'Archived' },
           { value: 'audiences', label: 'Audiences' },
         ]}
         value={tab}
         onChange={(v) => {
           setTab(v);
+          setRowSelection({});
           if (v === 'audiences') navigate('/audiences');
           else navigate('/');
         }}
@@ -232,7 +270,7 @@ export default function DirectMailList({ initialTab = 'direct-mail' }: { initial
       <div className="mt-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <h1 className="text-headline-sm font-bold text-text-primary">
-            {tab === 'direct-mail' ? 'Direct Mail' : 'Mail Templates'}
+            {tab === 'archived' ? 'Archived' : 'Direct Mail'}
           </h1>
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             <Input

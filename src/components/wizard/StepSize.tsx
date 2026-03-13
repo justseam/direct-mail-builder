@@ -5,6 +5,118 @@ import { useCampaign } from '../../stores/CampaignStore';
 import { paperSizes } from '../../data/mockData';
 import { cn } from '../../utils';
 
+/* ── Layout Preview — miniature canvas page with zones + dimension lines ── */
+
+function LayoutPreview({ paperSizeId }: { paperSizeId: string }) {
+  const size = paperSizes.find(s => s.id === paperSizeId);
+  if (!size) return null;
+
+  const wInches = parseFloat(size.width.replace('"', ''));
+  const hInches = parseFloat(size.height.replace('"', ''));
+  const envelope = size.envelope; // 'House 10' | '6x9' | '9x12' | 'None'
+
+  // Scale to fit a ~340px wide preview, with room for dimension lines
+  const dimSpace = 40; // space for dimension annotations
+  const maxW = 340;
+  const maxH = 420;
+  const scale = Math.min((maxW - dimSpace) / wInches, (maxH - dimSpace) / hInches) * 0.85;
+  const pw = Math.round(wInches * scale);
+  const ph = Math.round(hInches * scale);
+  const ox = dimSpace; // page x offset (room for left dimension line)
+  const oy = 10; // page y offset
+  const margin = Math.round(pw * 0.059);
+  const svgW = ox + pw + dimSpace;
+  const svgH = oy + ph + dimSpace;
+
+  const blue = '#93C5FD'; // blue-300
+  const blueTxt = '#60A5FA'; // blue-400
+  const dimColor = '#9CA3AF'; // gray-400
+
+  return (
+    <svg viewBox={`0 0 ${svgW} ${svgH}`} width={svgW} height={svgH} className="max-w-full h-auto">
+      {/* Page background */}
+      <rect x={ox} y={oy} width={pw} height={ph} fill="white" stroke="#D1D5DB" strokeWidth="1" />
+
+      {/* Margin guides */}
+      <rect
+        x={ox + margin} y={oy + margin}
+        width={pw - margin * 2} height={ph - margin * 2}
+        fill="none" stroke="#D1D5DB" strokeWidth="0.5" strokeDasharray="4 3"
+      />
+
+      {/* Fold lines for House 10 (tri-fold) */}
+      {envelope === 'House 10' && (
+        <>
+          <line x1={ox} y1={oy + Math.round(ph / 3)} x2={ox + pw} y2={oy + Math.round(ph / 3)} stroke={blue} strokeWidth="0.8" strokeDasharray="4 3" />
+          <text x={ox + 6} y={oy + Math.round(ph / 3) - 4} fontSize="8" fill={blueTxt} fontFamily="Roboto, sans-serif">Fold Line</text>
+          <line x1={ox} y1={oy + Math.round(ph * 2 / 3)} x2={ox + pw} y2={oy + Math.round(ph * 2 / 3)} stroke={blue} strokeWidth="0.8" strokeDasharray="4 3" />
+          <text x={ox + 6} y={oy + Math.round(ph * 2 / 3) - 4} fontSize="8" fill={blueTxt} fontFamily="Roboto, sans-serif">Fold Line</text>
+        </>
+      )}
+
+      {/* Fold line for 6x9 (half-fold) */}
+      {envelope === '6x9' && (
+        <>
+          <line x1={ox} y1={oy + Math.round(ph / 2)} x2={ox + pw} y2={oy + Math.round(ph / 2)} stroke={blue} strokeWidth="0.8" strokeDasharray="4 3" />
+          <text x={ox + 6} y={oy + Math.round(ph / 2) - 4} fontSize="8" fill={blueTxt} fontFamily="Roboto, sans-serif">Fold Line</text>
+        </>
+      )}
+
+      {/* Postal zones for House 10 */}
+      {envelope === 'House 10' && (
+        <>
+          {/* Return address window */}
+          <rect
+            x={ox + margin + 8} y={oy + margin + 5}
+            width={Math.round(pw * 0.32)} height={Math.round(ph * 0.066)}
+            fill="white" stroke={blue} strokeWidth="1.5" rx="1"
+          />
+          <text
+            x={ox + margin + 8 + Math.round(pw * 0.16)} y={oy + margin + 5 + Math.round(ph * 0.025)}
+            textAnchor="middle" fontSize="6" fill={blueTxt} fontFamily="Roboto, sans-serif" fontWeight="500"
+          >RETURN ADDRESS WINDOW</text>
+          <rect x={ox + margin + 14} y={oy + margin + 5 + Math.round(ph * 0.032)} width={Math.round(pw * 0.18)} height="3" rx="1" fill={blue} opacity="0.4" />
+          <rect x={ox + margin + 14} y={oy + margin + 5 + Math.round(ph * 0.042)} width={Math.round(pw * 0.14)} height="3" rx="1" fill={blue} opacity="0.4" />
+
+          {/* Address window */}
+          <rect
+            x={ox + margin + 8} y={oy + margin + Math.round(ph * 0.1)}
+            width={Math.round(pw * 0.37)} height={Math.round(ph * 0.095)}
+            fill="white" stroke={blue} strokeWidth="1.5" rx="1"
+          />
+          <text
+            x={ox + margin + 8 + Math.round(pw * 0.185)} y={oy + margin + Math.round(ph * 0.1) + Math.round(ph * 0.025)}
+            textAnchor="middle" fontSize="6" fill={blueTxt} fontFamily="Roboto, sans-serif" fontWeight="500"
+          >ADDRESS WINDOW</text>
+          <rect x={ox + margin + 14} y={oy + margin + Math.round(ph * 0.1) + Math.round(ph * 0.035)} width={Math.round(pw * 0.22)} height="3" rx="1" fill={blue} opacity="0.4" />
+          <rect x={ox + margin + 14} y={oy + margin + Math.round(ph * 0.1) + Math.round(ph * 0.048)} width={Math.round(pw * 0.18)} height="3" rx="1" fill={blue} opacity="0.4" />
+          <rect x={ox + margin + 14} y={oy + margin + Math.round(ph * 0.1) + Math.round(ph * 0.061)} width={Math.round(pw * 0.20)} height="3" rx="1" fill={blue} opacity="0.4" />
+        </>
+      )}
+
+      {/* ── Dimension lines ── */}
+      {/* Width — bottom */}
+      <line x1={ox} y1={oy + ph + 16} x2={ox + pw} y2={oy + ph + 16} stroke={dimColor} strokeWidth="0.8" />
+      <line x1={ox} y1={oy + ph + 10} x2={ox} y2={oy + ph + 22} stroke={dimColor} strokeWidth="0.8" />
+      <line x1={ox + pw} y1={oy + ph + 10} x2={ox + pw} y2={oy + ph + 22} stroke={dimColor} strokeWidth="0.8" />
+      <text
+        x={ox + pw / 2} y={oy + ph + 30}
+        textAnchor="middle" fontSize="10" fill={dimColor} fontFamily="Roboto, sans-serif" fontWeight="500"
+      >{wInches}&quot;</text>
+
+      {/* Height — left */}
+      <line x1={ox - 16} y1={oy} x2={ox - 16} y2={oy + ph} stroke={dimColor} strokeWidth="0.8" />
+      <line x1={ox - 22} y1={oy} x2={ox - 10} y2={oy} stroke={dimColor} strokeWidth="0.8" />
+      <line x1={ox - 22} y1={oy + ph} x2={ox - 10} y2={oy + ph} stroke={dimColor} strokeWidth="0.8" />
+      <text
+        x={ox - 18} y={oy + ph / 2}
+        textAnchor="middle" fontSize="10" fill={dimColor} fontFamily="Roboto, sans-serif" fontWeight="500"
+        transform={`rotate(-90, ${ox - 18}, ${oy + ph / 2})`}
+      >{hInches}&quot;</text>
+    </svg>
+  );
+}
+
 export default function StepSize() {
   const { draft, setFormatType, setPaperSize } = useCampaign();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -143,6 +255,13 @@ export default function StepSize() {
           ))}
         </div>
       </div>
+
+      {/* Layout Preview */}
+      {draft.paperSizeId && (
+        <div className="mt-10 flex justify-center">
+          <LayoutPreview paperSizeId={draft.paperSizeId} />
+        </div>
+      )}
     </div>
   );
 }

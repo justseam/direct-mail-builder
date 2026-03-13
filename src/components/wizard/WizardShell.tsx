@@ -18,6 +18,7 @@ interface WizardShellProps {
   statsBar?: ReactNode;
   nextLabel?: string;
   nextDisabled?: boolean;
+  nextDisabledReason?: string;
   backDisabled?: boolean;
   children: ReactNode;
 }
@@ -37,6 +38,7 @@ export default function WizardShell({
   statsBar,
   nextLabel,
   nextDisabled,
+  nextDisabledReason,
   backDisabled,
   children,
 }: WizardShellProps) {
@@ -158,6 +160,11 @@ export default function WizardShell({
               <Button variant="secondary" size="sm" onClick={onSaveDraft}>
                 Save as a Draft
               </Button>
+            </span>
+          )}
+          {nextDisabled && nextDisabledReason && (
+            <span className="hidden sm:inline text-body-sm text-red-500">
+              {nextDisabledReason}
             </span>
           )}
           <Button

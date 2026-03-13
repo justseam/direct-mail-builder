@@ -1,5 +1,4 @@
-import { useRef } from 'react';
-import { Check, Info, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Check } from 'lucide-react';
 import SegmentedButton from '../ui/SegmentedButton';
 import Input from '../ui/Input';
 import { useCampaign } from '../../stores/CampaignStore';
@@ -77,11 +76,6 @@ function EnvelopeIllustration({ stockId }: { stockId: string }) {
 
 export default function StepMailOptions() {
   const { draft, setPostageType, setReturnAddress, setPaperStock, setEnvelopeStock } = useCampaign();
-  const envScrollRef = useRef<HTMLDivElement>(null);
-
-  const scrollEnv = (dir: number) => {
-    envScrollRef.current?.scrollBy({ left: dir * 360, behavior: 'smooth' });
-  };
 
   return (
     <div className="max-w-5xl mx-auto py-6 sm:py-10 px-4 sm:px-6">
@@ -106,6 +100,11 @@ export default function StepMailOptions() {
             placeholder="123 Main St, Springfield, IL 62704"
             value={draft.returnAddress}
             onChange={e => setReturnAddress(e.target.value)}
+            error={
+              draft.returnAddress.trim().length === 0 && draft.paperStockId && draft.envelopeStockId
+                ? 'Return address is required to continue'
+                : undefined
+            }
             className="w-full"
           />
         </div>
@@ -187,102 +186,52 @@ export default function StepMailOptions() {
       {/* Envelope Stock */}
       <div>
         <h3 className="text-title-md font-medium text-text-primary mb-4">Envelope Stock</h3>
+        <div className="flex gap-4 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+          {envelopeStocks.map(stock => {
+            const selected = draft.envelopeStockId === stock.id;
+            return (
+              <button
+                key={stock.id}
+                className={cn(
+                  'min-w-[260px] sm:min-w-[280px] flex-1 rounded-[16px] cursor-pointer transition-all text-left overflow-hidden group',
+                  selected
+                    ? 'bg-[#242F42] shadow-lg ring-2 ring-[#242F42]'
+                    : 'bg-white border border-border hover:ring-2 hover:ring-[#0EA5E9] hover:border-transparent',
+                )}
+                onClick={() => setEnvelopeStock(stock.id)}
+              >
+                {/* Illustration area */}
+                <div className={cn(
+                  'rounded-t-[16px] h-[180px] flex items-center justify-center transition-colors',
+                  selected ? 'bg-white' : 'bg-[#F1F2F3] group-hover:bg-white',
+                )}>
+                  <EnvelopeIllustration stockId={stock.id} />
+                </div>
 
-        <div className="relative">
-          <button
-            onClick={() => scrollEnv(-1)}
-            className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white border border-border rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 cursor-pointer"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-
-          <div
-            ref={envScrollRef}
-            className="flex gap-4 overflow-x-auto pb-2 px-2"
-            style={{ scrollbarWidth: 'none' }}
-          >
-            {envelopeStocks.map(stock => {
-              const selected = draft.envelopeStockId === stock.id;
-              return (
-                <button
-                  key={stock.id}
-                  className={cn(
-                    'min-w-[260px] sm:min-w-[280px] rounded-[16px] cursor-pointer transition-all text-left shrink-0 overflow-hidden group',
-                    selected
-                      ? 'bg-[#242F42] shadow-lg ring-2 ring-[#242F42]'
-                      : 'bg-white border border-border hover:ring-2 hover:ring-[#0EA5E9] hover:border-transparent',
-                  )}
-                  onClick={() => setEnvelopeStock(stock.id)}
-                >
-                  {/* Illustration area */}
-                  <div className={cn(
-                    'rounded-t-[16px] h-[180px] flex items-center justify-center transition-colors',
-                    selected ? 'bg-white' : 'bg-[#F1F2F3] group-hover:bg-white',
+                {/* Content area */}
+                <div className="p-4">
+                  <p className={cn(
+                    'text-[14px] font-medium leading-tight',
+                    selected ? 'text-white' : 'text-text-primary',
                   )}>
-                    <EnvelopeIllustration stockId={stock.id} />
-                  </div>
-
-                  {/* Content area */}
-                  <div className="p-4 flex items-start justify-between gap-2">
-                    <div>
-                      <p className={cn(
-                        'text-[14px] font-medium leading-tight',
-                        selected ? 'text-white' : 'text-text-primary group-hover:text-text-primary',
-                      )}>
-                        {stock.name}
-                      </p>
-                      <p className={cn(
-                        'text-[16px] font-semibold mt-1',
-                        selected ? 'text-white' : 'text-[#0EA5E9]',
-                      )}>
-                        $ {stock.pricePerUnit.toFixed(2)}
-                      </p>
-                      <p className={cn(
-                        'text-[11px]',
-                        selected ? 'text-white/60' : 'text-text-secondary',
-                      )}>
-                        Per unit price
-                      </p>
-                    </div>
-                    <Info className={cn(
-                      'w-4.5 h-4.5 shrink-0 mt-0.5',
-                      selected ? 'text-white/60' : 'text-text-secondary group-hover:text-[#0EA5E9]',
-                    )} />
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          <button
-            onClick={() => scrollEnv(1)}
-            className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white border border-border rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 cursor-pointer"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Dots */}
-        <div className="flex justify-center gap-2 mt-4">
-          {envelopeStocks.map((stock, i) => (
-            <button
-              key={stock.id}
-              className={cn(
-                'w-5 h-5 rounded-full transition-colors cursor-pointer',
-                draft.envelopeStockId === stock.id ? 'bg-[#A9BBC6]' : 'bg-[#E9EFF3] hover:bg-[#C5CDD3]',
-              )}
-              onClick={() => {
-                setEnvelopeStock(stock.id);
-                const container = envScrollRef.current;
-                if (container) {
-                  const cards = container.children;
-                  if (cards[i]) {
-                    (cards[i] as HTMLElement).scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-                  }
-                }
-              }}
-            />
-          ))}
+                    {stock.name}
+                  </p>
+                  <p className={cn(
+                    'text-[16px] font-semibold mt-1',
+                    selected ? 'text-white' : 'text-[#0EA5E9]',
+                  )}>
+                    $ {stock.pricePerUnit.toFixed(2)}
+                  </p>
+                  <p className={cn(
+                    'text-[11px]',
+                    selected ? 'text-white/60' : 'text-text-secondary',
+                  )}>
+                    Per unit price
+                  </p>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

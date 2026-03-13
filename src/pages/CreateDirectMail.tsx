@@ -112,7 +112,9 @@ export default function CreateDirectMail() {
   const navigate = useNavigate();
   const location = useLocation();
   const { draft, audiences, setName, loadDraft, resetDraft, saveCampaign } = useCampaign();
-  const editId = (location.state as { editId?: string } | null)?.editId;
+  const locState = location.state as { editId?: string; viewOnly?: boolean } | null;
+  const editId = locState?.editId;
+  const viewOnly = locState?.viewOnly ?? false;
   const initialized = useRef(false);
 
   // When editing an existing campaign, pre-populate the draft and jump to Design
@@ -174,6 +176,24 @@ export default function CreateDirectMail() {
   };
   const nextDisabled = !isStepComplete(step);
 
+  // Build a human-readable reason when Next is disabled
+  const getDisabledReason = (): string | undefined => {
+    if (!nextDisabled) return undefined;
+    switch (step) {
+      case 0: return 'Select an audience to continue';
+      case 1: return 'Select a paper size to continue';
+      case 2: {
+        const missing: string[] = [];
+        if (!draft.paperStockId) missing.push('paper stock');
+        if (!draft.envelopeStockId) missing.push('envelope stock');
+        if (draft.returnAddress.trim().length === 0) missing.push('return address');
+        return `Enter ${missing.join(', ')} to continue`;
+      }
+      default: return undefined;
+    }
+  };
+  const nextDisabledReason = getDisabledReason();
+
   const statsBar = (
     <div className="flex items-center gap-4 text-[12px] shrink-0">
       <div className="flex items-center gap-1 text-text-secondary">
@@ -205,7 +225,7 @@ export default function CreateDirectMail() {
   return (
     <WizardShell
       title={draft.name}
-      onTitleChange={setName}
+      onTitleChange={viewOnly ? undefined : setName}
       steps={steps}
       currentStep={step}
       highestStep={highestStep}
@@ -216,17 +236,20 @@ export default function CreateDirectMail() {
           const next = step + 1;
           setStep(next);
           setHighestStep(h => Math.max(h, next));
+        } else if (viewOnly) {
+          navigate('/');
         } else {
           saveCampaign();
           navigate('/');
         }
       }}
       onClose={() => navigate('/')}
-      onSaveDraft={() => navigate('/')}
-      showUndo={step === 3}
+      onSaveDraft={viewOnly ? undefined : () => navigate('/')}
+      showUndo={!viewOnly && step === 3}
       statsBar={statsBar}
-      nextLabel={step === steps.length - 1 ? 'Launch Campaign' : 'Next'}
-      nextDisabled={nextDisabled}
+      nextLabel={viewOnly && step === steps.length - 1 ? 'Close' : step === steps.length - 1 ? 'Launch Campaign' : 'Next'}
+      nextDisabled={viewOnly ? false : nextDisabled}
+      nextDisabledReason={viewOnly ? undefined : nextDisabledReason}
     >
       {renderStep()}
     </WizardShell>

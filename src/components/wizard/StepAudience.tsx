@@ -5,7 +5,7 @@ import Dialog from '../ui/Dialog';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import { useCampaign } from '../../stores/CampaignStore';
-import { sampleCSVHeaders, sampleCSVData, mappableColumns } from '../../data/mockData';
+import { sampleCSVHeaders, sampleCSVData, sampleCSVErrors, mappableColumns } from '../../data/mockData';
 import { cn, formatNumber } from '../../utils';
 
 const uploadSteps = ['Upload', 'Mapping', 'Review', 'Status'];
@@ -34,7 +34,7 @@ export default function StepAudience() {
   const totalRecords = 3247;
   const errorCount = 12;
   const successRecords = totalRecords - errorCount;
-  const previewErrorRows = [2, 4]; // rows with errors in the preview sample
+  const previewErrorRows = Object.keys(sampleCSVErrors).map(Number);
 
   const simulateUpload = useCallback(() => {
     setFileName('audience_list_export.csv');
@@ -201,7 +201,7 @@ export default function StepAudience() {
         open={uploadDialogOpen}
         onClose={() => { setUploadDialogOpen(false); resetUpload(); }}
         title="Upload Audience List"
-        wide
+        extraWide
       >
         <div>
           {/* Step indicator */}
@@ -315,20 +315,44 @@ export default function StepAudience() {
           {/* Step 3: Review */}
           {uploadStep === 2 && (
             <div>
-              <div className="flex items-center gap-3 mb-4 p-3 bg-amber-50 border border-amber-200 rounded-[12px]">
-                <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
-                <div>
-                  <p className="text-body-md font-medium text-amber-800">
-                    {errorCount} records have errors
-                  </p>
-                  <p className="text-body-sm text-amber-700">
-                    These records will be skipped during import. Review the highlighted rows below.
-                  </p>
+              <div className="flex items-center justify-between mb-4 p-3 bg-amber-50 border border-amber-200 rounded-[12px]">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
+                  <div>
+                    <p className="text-body-md font-medium text-amber-800">
+                      {errorCount} records will be skipped
+                    </p>
+                    <p className="text-body-sm text-amber-700">
+                      Records with missing required fields are highlighted below.
+                    </p>
+                  </div>
                 </div>
+                <button
+                  onClick={() => {
+                    const errorRows = sampleCSVData
+                      .map((row, i) => ({ row, reason: sampleCSVErrors[i] }))
+                      .filter(r => r.reason);
+                    const csvContent = [
+                      [...sampleCSVHeaders, 'SKIP_REASON'].join(','),
+                      ...errorRows.map(r => [...r.row, r.reason].join(',')),
+                    ].join('\n');
+                    const blob = new Blob([csvContent], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'skipped_records.csv';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="inline-flex items-center gap-1.5 text-amber-800 text-body-sm font-medium hover:underline cursor-pointer shrink-0"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Download skipped
+                </button>
               </div>
 
-              <div className="bg-white rounded-[12px] border border-border overflow-x-auto max-h-64">
-                <table className="w-full min-w-[600px]">
+              <div className="bg-white rounded-[12px] border border-border">
+                <table className="w-full">
                   <thead>
                     <tr className="border-b border-border">
                       <th className="px-3 py-2 text-left text-label-md font-semibold text-table-header uppercase">Row</th>
@@ -337,26 +361,30 @@ export default function StepAudience() {
                           {h}
                         </th>
                       ))}
+                      <th className="px-3 py-2 text-left text-label-md font-semibold text-table-header uppercase text-[11px]">Reason</th>
                     </tr>
                   </thead>
                   <tbody>
                     {sampleCSVData.map((row, i) => {
-                      const hasError = previewErrorRows.includes(i);
+                      const errorReason = sampleCSVErrors[i];
                       return (
                         <tr
                           key={i}
                           className={cn(
                             'border-b border-border last:border-b-0',
-                            hasError && 'bg-red-50',
+                            errorReason && 'bg-red-50',
                           )}
                         >
                           <td className="px-3 py-2 text-body-sm">
-                            {hasError && <AlertTriangle className="w-3.5 h-3.5 text-red-500 inline mr-1" />}
+                            {errorReason && <AlertTriangle className="w-3.5 h-3.5 text-red-500 inline mr-1" />}
                             {i + 1}
                           </td>
                           {row.map((cell, j) => (
-                            <td key={j} className="px-3 py-2 text-body-sm">{cell || '-'}</td>
+                            <td key={j} className="px-3 py-2 text-body-sm">{cell || <span className="text-red-400">—</span>}</td>
                           ))}
+                          <td className="px-3 py-2 text-body-sm text-red-600 font-medium whitespace-nowrap">
+                            {errorReason || ''}
+                          </td>
                         </tr>
                       );
                     })}
@@ -425,24 +453,32 @@ export default function StepAudience() {
                           {errorCount} records skipped
                         </p>
                       </div>
-                      <p className="text-body-sm text-amber-700 mb-3">
-                        Reason: Missing required field <span className="font-semibold">CITY</span>
-                      </p>
+                      <ul className="text-body-sm text-amber-700 mb-3 space-y-0.5 list-disc list-inside">
+                        {Object.values(sampleCSVErrors).map((reason, i) => (
+                          <li key={i}>{reason}</li>
+                        ))}
+                      </ul>
                       <button
                         onClick={() => {
-                          const csv = 'FIRST_NAME,LAST_NAME,ADDRESS_1,ADDRESS_2,CITY,STATE,ZIP,EMAIL\nJane,Doe,456 Oak Ave,,,OR,97201,jane@example.com\nAlice,Williams,321 Elm St,,,CO,80202,alice@example.com';
-                          const blob = new Blob([csv], { type: 'text/csv' });
+                          const errorRows = sampleCSVData
+                            .map((row, i) => ({ row, reason: sampleCSVErrors[i] }))
+                            .filter(r => r.reason);
+                          const csvContent = [
+                            [...sampleCSVHeaders, 'SKIP_REASON'].join(','),
+                            ...errorRows.map(r => [...r.row, r.reason].join(',')),
+                          ].join('\n');
+                          const blob = new Blob([csvContent], { type: 'text/csv' });
                           const url = URL.createObjectURL(blob);
                           const a = document.createElement('a');
                           a.href = url;
-                          a.download = 'failed_records.csv';
+                          a.download = 'skipped_records.csv';
                           a.click();
                           URL.revokeObjectURL(url);
                         }}
                         className="inline-flex items-center gap-1.5 text-amber-800 text-body-sm font-medium hover:underline cursor-pointer"
                       >
                         <Download className="w-3.5 h-3.5" />
-                        Download failed records CSV
+                        Download skipped records CSV
                       </button>
                     </div>
                   )}
