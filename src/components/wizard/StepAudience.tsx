@@ -34,7 +34,6 @@ export default function StepAudience() {
   const totalRecords = 3247;
   const errorCount = 12;
   const successRecords = totalRecords - errorCount;
-  const previewErrorRows = Object.keys(sampleCSVErrors).map(Number);
 
   const simulateUpload = useCallback(() => {
     setFileName('audience_list_export.csv');
