@@ -1,4 +1,4 @@
-import { X, Trash2 } from 'lucide-react';
+import { X, Trash2, Info } from 'lucide-react';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
@@ -77,9 +77,18 @@ export default function PropertiesPanel({ element, pageId, onClose }: Properties
         {isImage && (
           <div>
             <h4 className="text-label-sm font-semibold text-text-secondary uppercase mb-2">Image</h4>
-            <Button variant="secondary" size="sm" className="w-full mb-2">
+            <Button variant="secondary" size="sm" className="w-full mb-3">
               Upload Image
             </Button>
+            <div className="rounded-[8px] bg-amber-50 border border-amber-200 p-2.5 mb-3">
+              <div className="flex gap-2">
+                <Info className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                <div className="text-[11px] text-amber-800 leading-relaxed">
+                  <p>Images are inserted at their full resolution. Enlarging beyond the original size may degrade print quality.</p>
+                  <p className="mt-1">Images above 300 DPI will be automatically scaled down to 300 DPI.</p>
+                </div>
+              </div>
+            </div>
             <Select
               label="Fit"
               options={[
